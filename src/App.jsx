@@ -11,11 +11,14 @@ import { zoneAt } from './data/lake.js';
 
 // Camera starts low in the forest interior; CameraRig drives the swoop to aerial.
 const CAMERA = { position: [4, 2.4, 25], fov: 45, near: 0.1, far: 200 };
-const AUTO = typeof location !== 'undefined' && new URLSearchParams(location.search).has('auto');
+const PARAMS = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
+const AUTO = PARAMS.has('auto');
+// ?motion=1 (or ?auto) forces the full intro even if the OS requests reduced motion
+const FORCE_MOTION = PARAMS.has('motion') || AUTO;
 
 export default function App() {
   const [reduced] = useState(
-    () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    () => !FORCE_MOTION && !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches),
   );
   const [counts, setCounts] = useState(START_COUNTS);
   const [done, setDone] = useState(reduced); // reduced motion starts "settled"
