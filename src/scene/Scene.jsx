@@ -4,6 +4,7 @@ import JungleFloor from './JungleFloor.jsx';
 import WaterSurface from './WaterSurface.jsx';
 import CanopyRing from './CanopyRing.jsx';
 import Clouds from './Clouds.jsx';
+import CameraRig from './CameraRig.jsx';
 import Post from './Post.jsx';
 
 // Assembles everything inside the <Canvas>.
@@ -18,6 +19,7 @@ export default function Scene({ hovered = null, quality = 'high', animate = true
       <WaterSurface hovered={hovered} />
       <CanopyRing animate={animate} />
       <Clouds animate={animate} />
+      <CameraRig autoStart />
       <Post quality={quality} />
     </>
   );
