@@ -85,12 +85,17 @@ export default function CameraRig({ onDone, autoStart = false }) {
     posCurve.getPointAt(g, pos.current);
     tgtCurve.getPointAt(g, tgt.current);
 
-    // gentle idle drift once settled (before handoff), so the hold isn't frozen
+    // gentle idle drift once settled (before handoff), so the hold isn't frozen.
+    // Windowed by sin(pi * d/span): exactly 0 at settle (no jump in) AND 0 at
+    // the handoff (camera ends at the clean aerial pose, so OrbitControls'
+    // target=[0,0,0] matches and there's no re-aim snap).
     if (t > T.settleEnd) {
+      const span = T.textEnd - T.settleEnd;
       const d = t - T.settleEnd;
-      pos.current.x += Math.sin(d * 0.18) * 0.5;
-      pos.current.y += Math.sin(d * 0.13 + 1.0) * 0.25;
-      tgt.current.x += Math.sin(d * 0.16) * 0.2;
+      const w = Math.sin(Math.PI * THREE.MathUtils.clamp(d / span, 0, 1));
+      pos.current.x += Math.sin(d * 0.6) * 0.5 * w;
+      pos.current.y += Math.sin(d * 0.5) * 0.25 * w;
+      tgt.current.x += Math.sin(d * 0.55) * 0.2 * w;
     }
 
     handheld(t, pos.current);
