@@ -245,6 +245,7 @@ export default function WaterSurface({ glowIntensity = 1, animate = true, ...han
         vertexShader={vert}
         fragmentShader={frag}
         uniforms={uniforms}
+        toneMapped={false}
       />
     </mesh>
   );

@@ -83,7 +83,7 @@ export default function JungleFloor() {
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, LAKE.y - 0.06, 0]} receiveShadow>
       <planeGeometry args={[HALF.x * 2, HALF.y * 2, 1, 1]} />
-      <shaderMaterial vertexShader={vert} fragmentShader={frag} uniforms={uniforms} />
+      <shaderMaterial vertexShader={vert} fragmentShader={frag} uniforms={uniforms} toneMapped={false} />
     </mesh>
   );
 }

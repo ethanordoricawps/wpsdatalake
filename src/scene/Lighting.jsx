@@ -3,11 +3,11 @@
 export default function Lighting() {
   return (
     <>
-      <ambientLight intensity={0.32} color="#3a5240" />
-      <hemisphereLight args={['#9fb98a', '#0a1c10', 0.35]} />
+      <ambientLight intensity={0.12} color="#3a5240" />
+      <hemisphereLight args={['#9fb98a', '#0a1c10', 0.18]} />
       <directionalLight
         position={[-14, 22, -10]}
-        intensity={1.25}
+        intensity={1.0}
         color="#fff3cf"
         castShadow
         shadow-mapSize={[2048, 2048]}

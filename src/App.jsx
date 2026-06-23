@@ -102,7 +102,6 @@ export default function App() {
     <>
       <Canvas
         shadows
-        flat
         camera={CAMERA}
         gl={{ antialias: true, powerPreference: 'high-performance' }}
         dpr={quality === 'high' ? [1, 2] : 1}

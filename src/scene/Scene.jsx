@@ -1,4 +1,5 @@
-import { OrbitControls } from '@react-three/drei';
+import { Suspense } from 'react';
+import { OrbitControls, Environment } from '@react-three/drei';
 import { PALETTE } from '../data/zones.js';
 import Lighting from './Lighting.jsx';
 import JungleFloor from './JungleFloor.jsx';
@@ -15,8 +16,12 @@ import Post from './Post.jsx';
 export default function Scene({ quality = 'high', animate = true, done = false, onIntroDone, waterHandlers, reduced = false, autoStart = false }) {
   return (
     <>
-      <color attach="background" args={[PALETTE.fog]} />
-      <fog attach="fog" args={[PALETTE.fog, 38, 95]} />
+      {/* Photographic rainforest surround + image-based lighting. The lake and
+          floor shaders stay tone-mapping-exempt so the lake keeps its vivid look. */}
+      <Suspense fallback={<color attach="background" args={[PALETTE.fog]} />}>
+        <Environment files="/hdri/mossy_forest_2k.hdr" background backgroundBlurriness={0.015} />
+      </Suspense>
+      <fog attach="fog" args={['#1b2a18', 34, 96]} />
       <Lighting />
       <JungleFloor />
       <WaterSurface animate={animate} {...waterHandlers} />

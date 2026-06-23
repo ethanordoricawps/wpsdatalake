@@ -73,7 +73,8 @@ export default function CameraRig({ onDone, autoStart = false }) {
     if (!intro.started) return; // EnterGate hasn't fired yet
 
     // keep the timeline clock advancing even after handoff (SkyText fade-out etc.)
-    const t = state.clock.elapsedTime - intro.startTime;
+    // (dev: intro.freeze pins the timeline at a fixed t for deterministic shots)
+    const t = intro.freeze != null ? intro.freeze : state.clock.elapsedTime - intro.startTime;
     intro.t = t;
     if (intro.done) return; // OrbitControls own the camera now
 
