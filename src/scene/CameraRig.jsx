@@ -17,7 +17,12 @@ const KEYS = [
 // final framing (also the reduced-motion / idle anchor)
 export const AERIAL = { pos: new THREE.Vector3(0, 25, 19), tgt: new THREE.Vector3(0, 0, 0) };
 
-const easeInOutCubic = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+// quintic smootherstep — zero velocity AND zero acceleration at both ends, so
+// the slow->fast build has no jerk (cubic ease-in-out spiked mid-swoop)
+const smootherstep = (x) => {
+  const c = THREE.MathUtils.clamp(x, 0, 1);
+  return c * c * c * (c * (c * 6 - 15) + 10);
+};
 const v = (a) => new THREE.Vector3(a[0], a[1], a[2]);
 
 // A gentle low-frequency handheld drift (not a shake), faded out by the swoop end.
@@ -72,10 +77,13 @@ export default function CameraRig({ onDone, autoStart = false }) {
     intro.t = t;
     if (intro.done) return; // OrbitControls own the camera now
 
-    // single global ease across the whole swoop -> one continuous move
-    const g = easeInOutCubic(THREE.MathUtils.clamp(t / T.settleEnd, 0, 1));
-    posCurve.getPoint(g, pos.current);
-    tgtCurve.getPoint(g, tgt.current);
+    // single global ease across the whole swoop -> one continuous move.
+    // getPointAt() = arc-length parametrized, so speed is constant per unit g
+    // (no spatial jerk from the spline's uneven segment lengths); the ease then
+    // shapes a smooth accelerate/decelerate over the whole path.
+    const g = smootherstep(t / T.settleEnd);
+    posCurve.getPointAt(g, pos.current);
+    tgtCurve.getPointAt(g, tgt.current);
 
     // gentle idle drift once settled (before handoff), so the hold isn't frozen
     if (t > T.settleEnd) {
