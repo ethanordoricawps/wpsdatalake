@@ -1,7 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import Scene from './scene/Scene.jsx';
 import { resetIntro } from './intro.js';
+import { addRipple, lake } from './lake-state.js';
+import { START_COUNTS, ZONES, ZONE_KEYS } from './data/zones.js';
+import { zoneAt } from './data/lake.js';
 
 // Camera starts low in the forest interior; CameraRig drives the swoop to aerial.
 const CAMERA = { position: [4, 2.4, 25], fov: 45, near: 0.1, far: 200 };
@@ -10,10 +13,60 @@ export default function App() {
   const [reduced] = useState(
     () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
+  const [counts, setCounts] = useState(START_COUNTS);
+  const [done, setDone] = useState(reduced); // reduced motion starts "settled"
+  const [hovered, setHovered] = useState(null);
+  const [answer, setAnswer] = useState({ text: '', ok: true });
 
   useEffect(() => {
     resetIntro(reduced);
   }, [reduced]);
+
+  // central "a basin was queried": ripple + bump its live count (2D hitZone)
+  const hitZone = useCallback((k) => {
+    if (!ZONES[k]) return;
+    addRipple(k);
+    setCounts((c) => ({ ...c, [k]: c[k] + 1 }));
+  }, []);
+
+  // auto-life: every ~2.2s ripple a random basin (the 2D simQuery)
+  const hitRef = useRef(hitZone);
+  hitRef.current = hitZone;
+  useEffect(() => {
+    if (reduced) return;
+    const id = setInterval(() => {
+      if (!done) return;
+      hitRef.current(ZONE_KEYS[(Math.random() * ZONE_KEYS.length) | 0]);
+    }, 2200);
+    return () => clearInterval(id);
+  }, [reduced, done]);
+
+  // pointer interaction on the water (only after the intro settles)
+  const waterHandlers = useMemo(() => {
+    const setHov = (z) => {
+      lake.hovered = z;
+      setHovered(z);
+      document.body.style.cursor = z ? 'pointer' : 'default';
+    };
+    return {
+      onPointerMove: (e) => {
+        if (!done) return;
+        setHov(zoneAt(e.point.x, e.point.z));
+      },
+      onPointerOut: () => setHov(null),
+      onClick: (e) => {
+        if (!done) return;
+        const z = zoneAt(e.point.x, e.point.z);
+        if (!z) return;
+        hitZone(z);
+        const Z = ZONES[z];
+        setAnswer({
+          text: `${Z.name} draws from ${Z.sources[0]} and ${Z.sources[1]}.  Illustrative — pending discovery.`,
+          ok: true,
+        });
+      },
+    };
+  }, [done, hitZone]);
 
   return (
     <Canvas
@@ -23,7 +76,12 @@ export default function App() {
       gl={{ antialias: true, powerPreference: 'high-performance' }}
       dpr={[1, 2]}
     >
-      <Scene animate={!reduced} />
+      <Scene
+        animate={!reduced}
+        done={done}
+        onIntroDone={() => setDone(true)}
+        waterHandlers={waterHandlers}
+      />
     </Canvas>
   );
 }

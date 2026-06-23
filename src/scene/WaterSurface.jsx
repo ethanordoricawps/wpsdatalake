@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { LAKE, CELLS } from '../data/lake.js';
 import { PALETTE, rgbCss } from '../data/zones.js';
+import { lake } from '../lake-state.js';
 
 // Linear-space vec3 from a hex string (three converts sRGB->linear on parse).
 function linVec3(hex) {
@@ -185,7 +186,7 @@ function basinArrays() {
   return { centers, colors, rads, brights, phases };
 }
 
-export default function WaterSurface({ hovered = null, glowIntensity = 1 }) {
+export default function WaterSurface({ glowIntensity = 1, ...handlers }) {
   const matRef = useRef();
   const b = useMemo(basinArrays, []);
   const { bounds } = CELLS;
@@ -227,16 +228,15 @@ export default function WaterSurface({ hovered = null, glowIntensity = 1 }) {
     if (!m) return;
     m.uniforms.uTime.value = state.clock.elapsedTime;
     m.uniforms.uGlow.value = glowIntensity;
-    // hover lift (ORDER = eng, part, field, fund)
+    // hover lift (ORDER = eng, part, field, fund), eased toward target
     const hv = m.uniforms.uHover.value;
-    hv[0] = hovered === 'eng' ? 1 : 0;
-    hv[1] = hovered === 'part' ? 1 : 0;
-    hv[2] = hovered === 'field' ? 1 : 0;
-    hv[3] = hovered === 'fund' ? 1 : 0;
+    const h = lake.hovered;
+    const tgt = [h === 'eng', h === 'part', h === 'field', h === 'fund'];
+    for (let i = 0; i < 4; i++) hv[i] += ((tgt[i] ? 1 : 0) - hv[i]) * 0.15;
   });
 
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, LAKE.y, 0]} receiveShadow>
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, LAKE.y, 0]} receiveShadow {...handlers}>
       <planeGeometry args={[LAKE.rx * 2, LAKE.rz * 2, 96, 96]} />
       <shaderMaterial
         ref={matRef}

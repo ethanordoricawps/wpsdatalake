@@ -90,3 +90,14 @@ export function feedToWorld(feed) {
 
 // Precomputed cells (geometry is static once LAKE is fixed).
 export const CELLS = computeCells();
+
+// Which basin contains a world XZ point (mirror of the 2×2 partition).
+// Returns null if the point is outside the lake ellipse.
+export function zoneAt(x, z) {
+  const a = Math.atan2(z / LAKE.rz, x / LAKE.rx);
+  const norm = Math.hypot(x / LAKE.rx, z / LAKE.rz) / shoreWobble(a);
+  if (norm > 1.0) return null; // outside the waterline
+  const { xs, zL, zR } = CELLS.bounds;
+  if (x <= xs) return z <= zL ? 'eng' : 'part';
+  return z <= zR ? 'field' : 'fund';
+}
