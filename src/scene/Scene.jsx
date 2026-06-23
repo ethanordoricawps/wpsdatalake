@@ -5,6 +5,7 @@ import JungleFloor from './JungleFloor.jsx';
 import WaterSurface from './WaterSurface.jsx';
 import CanopyRing from './CanopyRing.jsx';
 import Clouds from './Clouds.jsx';
+import Inflow from './Inflow.jsx';
 import CameraRig from './CameraRig.jsx';
 import SkyText from './SkyText.jsx';
 import RippleManager from './RippleManager.jsx';
@@ -19,6 +20,7 @@ export default function Scene({ quality = 'high', animate = true, done = false, 
       <Lighting />
       <JungleFloor />
       <WaterSurface animate={animate} {...waterHandlers} />
+      <Inflow animate={animate} quality={quality} />
       <RippleManager animate={animate} />
       <CanopyRing animate={animate} quality={quality} />
       {quality !== 'low' && <Clouds animate={animate} />}
