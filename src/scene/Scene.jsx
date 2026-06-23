@@ -5,6 +5,7 @@ import WaterSurface from './WaterSurface.jsx';
 import CanopyRing from './CanopyRing.jsx';
 import Clouds from './Clouds.jsx';
 import CameraRig from './CameraRig.jsx';
+import SkyText from './SkyText.jsx';
 import Post from './Post.jsx';
 
 // Assembles everything inside the <Canvas>.
@@ -20,6 +21,7 @@ export default function Scene({ hovered = null, quality = 'high', animate = true
       <CanopyRing animate={animate} />
       <Clouds animate={animate} />
       <CameraRig autoStart />
+      <SkyText />
       <Post quality={quality} />
     </>
   );
