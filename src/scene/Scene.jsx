@@ -11,7 +11,7 @@ import RippleManager from './RippleManager.jsx';
 import Post from './Post.jsx';
 
 // Assembles everything inside the <Canvas>.
-export default function Scene({ quality = 'high', animate = true, done = false, onIntroDone, waterHandlers }) {
+export default function Scene({ quality = 'high', animate = true, done = false, onIntroDone, waterHandlers, reduced = false, autoStart = false }) {
   return (
     <>
       <color attach="background" args={[PALETTE.fog]} />
@@ -22,8 +22,8 @@ export default function Scene({ quality = 'high', animate = true, done = false, 
       <RippleManager animate={animate} />
       <CanopyRing animate={animate} />
       <Clouds animate={animate} />
-      <CameraRig autoStart onDone={onIntroDone} />
-      <SkyText />
+      <CameraRig autoStart={autoStart} onDone={onIntroDone} />
+      <SkyText reduced={reduced} />
       <Post quality={quality} />
 
       {/* Clamped orbit takes over once the intro settles (mounted fresh so it

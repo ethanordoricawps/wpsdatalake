@@ -17,6 +17,10 @@ export const T = {
   textEnd: 13, // 10–13 text fades up; then OrbitControls take over
 };
 
+if (import.meta.env && import.meta.env.DEV) {
+  window.__intro = intro;
+}
+
 export function resetIntro(reduced) {
   intro.started = false;
   intro.startTime = 0;

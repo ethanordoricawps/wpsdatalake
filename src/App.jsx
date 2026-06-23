@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import Scene from './scene/Scene.jsx';
-import { resetIntro } from './intro.js';
+import Overlay from './ui/Overlay.jsx';
+import EnterGate from './ui/EnterGate.jsx';
+import { intro, resetIntro } from './intro.js';
 import { addRipple, lake } from './lake-state.js';
-import { START_COUNTS, ZONES, ZONE_KEYS } from './data/zones.js';
+import { startAmbient, setMuted } from './audio.js';
+import { START_COUNTS, ZONES, ZONE_KEYS, askLake } from './data/zones.js';
 import { zoneAt } from './data/lake.js';
 
 // Camera starts low in the forest interior; CameraRig drives the swoop to aerial.
 const CAMERA = { position: [4, 2.4, 25], fov: 45, near: 0.1, far: 200 };
+const AUTO = typeof location !== 'undefined' && new URLSearchParams(location.search).has('auto');
 
 export default function App() {
   const [reduced] = useState(
@@ -15,8 +19,10 @@ export default function App() {
   );
   const [counts, setCounts] = useState(START_COUNTS);
   const [done, setDone] = useState(reduced); // reduced motion starts "settled"
-  const [hovered, setHovered] = useState(null);
+  const [, setHovered] = useState(null);
   const [answer, setAnswer] = useState({ text: '', ok: true });
+  const [entered, setEntered] = useState(AUTO);
+  const [soundOn, setSoundOn] = useState(true);
 
   useEffect(() => {
     resetIntro(reduced);
@@ -41,19 +47,17 @@ export default function App() {
     return () => clearInterval(id);
   }, [reduced, done]);
 
+  const hoverZone = useCallback((z) => {
+    lake.hovered = z;
+    setHovered(z);
+    document.body.style.cursor = z ? 'pointer' : 'default';
+  }, []);
+
   // pointer interaction on the water (only after the intro settles)
-  const waterHandlers = useMemo(() => {
-    const setHov = (z) => {
-      lake.hovered = z;
-      setHovered(z);
-      document.body.style.cursor = z ? 'pointer' : 'default';
-    };
-    return {
-      onPointerMove: (e) => {
-        if (!done) return;
-        setHov(zoneAt(e.point.x, e.point.z));
-      },
-      onPointerOut: () => setHov(null),
+  const waterHandlers = useMemo(
+    () => ({
+      onPointerMove: (e) => { if (done) hoverZone(zoneAt(e.point.x, e.point.z)); },
+      onPointerOut: () => hoverZone(null),
       onClick: (e) => {
         if (!done) return;
         const z = zoneAt(e.point.x, e.point.z);
@@ -65,23 +69,61 @@ export default function App() {
           ok: true,
         });
       },
-    };
-  }, [done, hitZone]);
+    }),
+    [done, hoverZone, hitZone],
+  );
+
+  const onAsk = useCallback((q) => {
+    const r = askLake(q);
+    if (r.zone) hitZone(r.zone);
+    setAnswer({ text: r.answer, ok: r.ok });
+  }, [hitZone]);
+
+  const onEnter = useCallback(() => {
+    setEntered(true);
+    intro.started = true;
+    if (soundOn) startAmbient();
+  }, [soundOn]);
+
+  const toggleSound = useCallback(() => {
+    setSoundOn((s) => {
+      const next = !s;
+      if (next) startAmbient();
+      setMuted(!next);
+      return next;
+    });
+  }, []);
 
   return (
-    <Canvas
-      shadows
-      flat
-      camera={CAMERA}
-      gl={{ antialias: true, powerPreference: 'high-performance' }}
-      dpr={[1, 2]}
-    >
-      <Scene
-        animate={!reduced}
-        done={done}
-        onIntroDone={() => setDone(true)}
-        waterHandlers={waterHandlers}
+    <>
+      <Canvas
+        shadows
+        flat
+        camera={CAMERA}
+        gl={{ antialias: true, powerPreference: 'high-performance' }}
+        dpr={[1, 2]}
+      >
+        <Scene
+          animate={!reduced}
+          reduced={reduced}
+          autoStart={AUTO}
+          done={done}
+          onIntroDone={() => setDone(true)}
+          waterHandlers={waterHandlers}
+        />
+      </Canvas>
+
+      <Overlay
+        visible={done && entered}
+        counts={counts}
+        answer={answer}
+        onHover={hoverZone}
+        onAsk={onAsk}
+        soundOn={soundOn}
+        onToggleSound={toggleSound}
       />
-    </Canvas>
+
+      {!entered && <EnterGate onEnter={onEnter} />}
+    </>
   );
 }

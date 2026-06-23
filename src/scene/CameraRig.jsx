@@ -52,11 +52,16 @@ export default function CameraRig({ onDone, autoStart = false }) {
   const { camera } = useThree();
   const target = useRef(new THREE.Vector3(0, 4, 13));
   const firedDone = useRef(false);
+  const startStamped = useRef(false);
 
   useFrame((state) => {
-    // self-start (Phase 5 testing; Phase 8 EnterGate starts it explicitly)
+    // autoStart (tests / ?auto) flips the gate-controlled flag for us
     if (autoStart && !intro.started && !intro.reduced && !intro.done) {
       intro.started = true;
+    }
+    // stamp the start time on the first frame after the gate fires
+    if (intro.started && !startStamped.current && !intro.reduced) {
+      startStamped.current = true;
       intro.startTime = state.clock.elapsedTime;
     }
 
@@ -72,11 +77,14 @@ export default function CameraRig({ onDone, autoStart = false }) {
       return;
     }
 
-    if (!intro.started) return; // EnterGate hasn't fired yet (Phase 8)
-    if (intro.done) return; // OrbitControls own the camera now
+    if (!intro.started) return; // EnterGate hasn't fired yet
 
+    // keep the timeline clock advancing even after handoff, so SkyText can
+    // finish its fade-out and any time-driven UI stays in sync
     const t = state.clock.elapsedTime - intro.startTime;
     intro.t = t;
+
+    if (intro.done) return; // OrbitControls own the camera now
 
     const { pos, tgt } = sampleTimeline(t);
 
