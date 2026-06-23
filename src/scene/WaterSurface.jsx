@@ -55,6 +55,12 @@ const frag = /* glsl */ `
   uniform float uXs, uZL, uZR, uLeft, uRight, uTop2, uBot, uAmp;
   uniform vec3  uChannel;
 
+  // surface (Phase 3)
+  uniform vec3  uSunDir;     // toward the sun (normalized)
+  uniform vec3  uSun;        // warm sun/pool color (linear)
+  uniform vec3  uShimmer;    // surface shimmer color (linear)
+  uniform float uPoolR;      // sunlight-pool radius (world)
+
   float wobble(float a) {
     return 1.0
       + 0.06  * sin(3.0 * a + 0.6)
@@ -74,6 +80,23 @@ const frag = /* glsl */ `
     float wide   = (1.0 - smoothstep(0.0, uAmp * 0.95, abs(d))) * 0.055;
     float narrow = (1.0 - smoothstep(0.0, uAmp * 0.34, abs(d))) * 0.11;
     return wide + narrow;
+  }
+
+  // one directional ripple wave's height contribution + analytic gradient.
+  // accumulates dHeight/dx and dHeight/dz into grad.
+  float wave(vec2 wp, vec2 dir, float freq, float speed, float amp, inout vec2 grad) {
+    float ph = dot(wp, dir) * freq + uTime * speed;
+    grad += amp * cos(ph) * dir * freq;
+    return amp * sin(ph);
+  }
+
+  // perturbed surface normal from a few crossing ripples (drives the glints)
+  vec3 waterNormal(vec2 wp) {
+    vec2 grad = vec2(0.0);
+    wave(wp, normalize(vec2(0.85, 0.55)), 1.7, 0.9,  0.018, grad);
+    wave(wp, normalize(vec2(-0.5, 0.9)),  2.3, 0.7,  0.012, grad);
+    wave(wp, normalize(vec2(0.2, -1.0)),  3.1, 1.3,  0.008, grad);
+    return normalize(vec3(-grad.x, 1.0, -grad.y));
   }
 
   void main() {
@@ -114,6 +137,26 @@ const frag = /* glsl */ `
     // right-column horizontal at z = zR (x in [xs, right])
     if (wp.x >  uXs) ch += band(wp.y - (uZR + meander(wp.x, 2.6))) * 0.85;
     col += uChannel * ch;
+
+    // ---- surface shimmer: sun glints off animated ripples ----
+    vec3 N = waterNormal(wp);
+    vec3 V = normalize(cameraPosition - vWorld);
+    vec3 H = normalize(uSunDir + V);
+    float spec = pow(max(dot(N, H), 0.0), 90.0);
+    col += uSun * spec * 0.6;                       // sharp warm glints
+    // broad sky sheen + gentle dappled shimmer
+    float sheen = pow(max(dot(N, H), 0.0), 14.0);
+    col += uShimmer * sheen * 0.05;
+
+    // ---- pools of sunlight drifting across the water (2D lissajous) ----
+    for (int j = 0; j < 5; j++) {
+      float fj = float(j);
+      vec2 pc = vec2(sin(uTime * 0.07 + fj * 1.3) * (uRight * 0.5),
+                     cos(uTime * 0.05 + fj * 2.1) * (uBot * 0.5));
+      float pd = distance(wp, pc);
+      float pa = (1.0 - smoothstep(0.0, uPoolR, pd)) * 0.06;
+      col += uSun * pa;
+    }
 
     // darken toward the shoreline (2D inner vignette)
     float edge = smoothstep(0.35, 1.0, r / wob);
@@ -170,6 +213,10 @@ export default function WaterSurface({ hovered = null, glowIntensity = 1 }) {
       uBot: { value: bounds.bot },
       uAmp: { value: LAKE.rz * 0.16 },
       uChannel: { value: linVec3Rgb(PALETTE.shimmer) },
+      uSunDir: { value: new THREE.Vector3(-14, 22, -10).normalize() },
+      uSun: { value: linVec3Rgb(PALETTE.sunPool) },
+      uShimmer: { value: linVec3Rgb(PALETTE.shimmer) },
+      uPoolR: { value: Math.max(LAKE.rx, LAKE.rz) * 0.42 },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
