@@ -186,7 +186,9 @@ function basinArrays() {
   return { centers, colors, rads, brights, phases };
 }
 
-export default function WaterSurface({ glowIntensity = 1, ...handlers }) {
+const STATIC_T = 4.0; // frozen clock for the reduced-motion static frame
+
+export default function WaterSurface({ glowIntensity = 1, animate = true, ...handlers }) {
   const matRef = useRef();
   const b = useMemo(basinArrays, []);
   const { bounds } = CELLS;
@@ -226,7 +228,7 @@ export default function WaterSurface({ glowIntensity = 1, ...handlers }) {
   useFrame((state) => {
     const m = matRef.current;
     if (!m) return;
-    m.uniforms.uTime.value = state.clock.elapsedTime;
+    m.uniforms.uTime.value = animate ? state.clock.elapsedTime : STATIC_T;
     m.uniforms.uGlow.value = glowIntensity;
     // hover lift (ORDER = eng, part, field, fund), eased toward target
     const hv = m.uniforms.uHover.value;

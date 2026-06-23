@@ -23,6 +23,7 @@ export default function App() {
   const [answer, setAnswer] = useState({ text: '', ok: true });
   const [entered, setEntered] = useState(AUTO);
   const [soundOn, setSoundOn] = useState(true);
+  const [quality, setQuality] = useState('high');
 
   useEffect(() => {
     resetIntro(reduced);
@@ -101,13 +102,14 @@ export default function App() {
         flat
         camera={CAMERA}
         gl={{ antialias: true, powerPreference: 'high-performance' }}
-        dpr={[1, 2]}
+        dpr={quality === 'high' ? [1, 2] : 1}
       >
         <Scene
           animate={!reduced}
           reduced={reduced}
           autoStart={AUTO}
           done={done}
+          quality={quality}
           onIntroDone={() => setDone(true)}
           waterHandlers={waterHandlers}
         />
@@ -121,6 +123,8 @@ export default function App() {
         onAsk={onAsk}
         soundOn={soundOn}
         onToggleSound={toggleSound}
+        quality={quality}
+        onToggleQuality={() => setQuality((q) => (q === 'high' ? 'low' : 'high'))}
       />
 
       {!entered && <EnterGate onEnter={onEnter} />}

@@ -18,10 +18,10 @@ export default function Scene({ quality = 'high', animate = true, done = false, 
       <fog attach="fog" args={[PALETTE.fog, 38, 95]} />
       <Lighting />
       <JungleFloor />
-      <WaterSurface {...waterHandlers} />
+      <WaterSurface animate={animate} {...waterHandlers} />
       <RippleManager animate={animate} />
-      <CanopyRing animate={animate} />
-      <Clouds animate={animate} />
+      <CanopyRing animate={animate} quality={quality} />
+      {quality !== 'low' && <Clouds animate={animate} />}
       <CameraRig autoStart={autoStart} onDone={onIntroDone} />
       <SkyText reduced={reduced} />
       <Post quality={quality} />

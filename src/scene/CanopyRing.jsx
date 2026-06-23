@@ -17,11 +17,10 @@ function mulberry32(seed) {
 }
 
 const GROUND = { x: 40, z: 28 }; // scatter extent (inside JungleFloor's HALF)
-const COUNT = 820;
 
 // Build instance transforms + colors. Fills the jungle outside the lake,
 // denser at the shoreline (the 2D "overhang" ring), mirroring buildScene().
-function buildInstances() {
+function buildInstances(COUNT) {
   const rng = mulberry32(0xc0ffee);
   const dummy = new THREE.Object3D();
   const matrices = [];
@@ -64,11 +63,12 @@ function buildInstances() {
   return { matrices, colors };
 }
 
-export default function CanopyRing({ animate = true }) {
+export default function CanopyRing({ animate = true, quality = 'high' }) {
   const ref = useRef();
   const matRef = useRef();
   const windRef = useRef({ value: 0 });
-  const { matrices, colors } = useMemo(buildInstances, []);
+  const count = quality === 'low' ? 380 : 820;
+  const { matrices, colors } = useMemo(() => buildInstances(count), [count]);
 
   useLayoutEffect(() => {
     const mesh = ref.current;
