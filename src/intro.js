@@ -9,12 +9,12 @@ export const intro = {
   reduced: false, // prefers-reduced-motion: snap to end-state
 };
 
-// Timeline keyframes (seconds). See build brief §4.
+// Timeline keyframes (seconds). See build brief §4. Tightened from 13s -> 9.5s.
 export const T = {
-  forestEnd: 4, // 0–4  forest interior
-  swoopEnd: 8, // 4–8  swoop up through canopy
-  settleEnd: 10, // 8–10 flatten & settle to aerial
-  textEnd: 13, // 10–13 text fades up; then OrbitControls take over
+  forestEnd: 3, // 0–3  forest interior
+  swoopEnd: 6, // 3–6  swoop up through canopy (handheld fades out by here)
+  settleEnd: 7, // swoop completes / aerial framing reached
+  textEnd: 9.5, // title done fading up; then OrbitControls take over
 };
 
 if (import.meta.env && import.meta.env.DEV) {

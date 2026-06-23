@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, Billboard } from '@react-three/drei';
 import * as THREE from 'three';
-import { intro } from '../intro.js';
+import { intro, T } from '../intro.js';
 import { PALETTE } from '../data/zones.js';
 
 const FRAUNCES = '/fonts/fraunces-400.woff';
@@ -74,10 +74,10 @@ export default function SkyText({ reduced = false }) {
     <group>
       <FadeText
         base={[0, 10.5, 2]}
-        start={9.8}
-        dur={1.7}
-        outStart={13.0}
-        outDur={1.6}
+        start={T.settleEnd - 0.3}
+        dur={1.5}
+        outStart={T.textEnd}
+        outDur={1.5}
         font={FRAUNCES}
         color={PALETTE.ink}
         fontSize={2.4}
@@ -88,10 +88,10 @@ export default function SkyText({ reduced = false }) {
 
       <FadeText
         base={[0, 8.4, 2]}
-        start={10.7}
-        dur={1.4}
-        outStart={13.0}
-        outDur={1.4}
+        start={T.settleEnd + 0.4}
+        dur={1.3}
+        outStart={T.textEnd}
+        outDur={1.3}
         font={INTER}
         color="#BAC4AE"
         fontSize={0.62}
