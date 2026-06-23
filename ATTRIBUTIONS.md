@@ -1,11 +1,23 @@
 # Attributions
 
-## 3D assets
+## Sourced CC0 assets (Poly Haven / ambientCG — all CC0, no attribution required)
 
-**All geometry in this scene is procedural** — generated at runtime from
-primitives (planes, icospheres, cones, cylinders) and custom shaders. There are
-**no third-party / downloaded 3D models**, so there is nothing to attribute and
-no license to track for geometry.
+- **`public/hdri/mossy_forest_2k.hdr`** — "Mossy Forest" HDRI, Poly Haven (CC0).
+  Used as the scene's photographic skybox + image-based lighting.
+  https://polyhaven.com/a/mossy_forest
+- **`public/tex/forest_leaves_*`** — "Forest Leaves 02" texture (diffuse / normal /
+  roughness), Poly Haven (CC0). Tiled onto the canopy for leafy surface detail.
+  https://polyhaven.com/a/forest_leaves_02
+
+These are CC0 (public domain), so attribution is optional — listed here for
+provenance and easy swapping.
+
+## 3D geometry
+
+**All geometry is procedural** — generated at runtime from primitives (planes,
+icospheres, cones) and custom shaders. There are **no third-party / downloaded
+3D models** (the photographic realism comes from the HDRI + textures above on
+procedural meshes).
 
 ### Why procedural instead of sourced CC0 GLB trees
 

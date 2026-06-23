@@ -27,7 +27,9 @@ export default function Scene({ quality = 'high', animate = true, done = false, 
       <WaterSurface animate={animate} {...waterHandlers} />
       <Inflow animate={animate} quality={quality} />
       <RippleManager animate={animate} />
-      <CanopyRing animate={animate} quality={quality} />
+      <Suspense fallback={null}>
+        <CanopyRing animate={animate} quality={quality} />
+      </Suspense>
       {quality !== 'low' && <Clouds animate={animate} />}
       <CameraRig autoStart={autoStart} onDone={onIntroDone} />
       <SkyText reduced={reduced} />

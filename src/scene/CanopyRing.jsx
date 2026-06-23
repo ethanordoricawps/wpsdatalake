@@ -1,5 +1,6 @@
 import { useMemo, useRef, useLayoutEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { LAKE, shoreWobble } from '../data/lake.js';
 import { FOLIAGE } from '../data/zones.js';
@@ -26,7 +27,9 @@ function buildInstances(COUNT) {
   const matrices = [];
   const colors = [];
 
-  const foliageHi = FOLIAGE.map((pair) => new THREE.Color(pair[1])); // highlight tint
+  // lighter tints so the leaf texture reads (texture * vertexColor multiply)
+  const white = new THREE.Color('#ffffff');
+  const foliageHi = FOLIAGE.map((pair) => new THREE.Color(pair[1]).lerp(white, 0.55));
   const pushBlob = (x, z, scale, tint) => {
     dummy.position.set(x, scale * 0.45 - 0.1, z);
     dummy.rotation.set(0, rng() * Math.PI * 2, 0);
@@ -69,6 +72,21 @@ export default function CanopyRing({ animate = true, quality = 'high' }) {
   const windRef = useRef({ value: 0 });
   const count = quality === 'low' ? 380 : 820;
   const { matrices, colors } = useMemo(() => buildInstances(count), [count]);
+
+  // photographic leaf surface (diffuse + normal + roughness), tiled small so
+  // the canopy reads as leafy/mossy masses instead of smooth domes
+  const [map, normalMap, roughnessMap] = useTexture([
+    '/tex/forest_leaves_diffuse.jpg',
+    '/tex/forest_leaves_nor.jpg',
+    '/tex/forest_leaves_rough.jpg',
+  ]);
+  useMemo(() => {
+    [map, normalMap, roughnessMap].forEach((t) => {
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      t.repeat.set(2.4, 2.4);
+    });
+    map.colorSpace = THREE.SRGBColorSpace;
+  }, [map, normalMap, roughnessMap]);
 
   useLayoutEffect(() => {
     const mesh = ref.current;
@@ -113,11 +131,14 @@ export default function CanopyRing({ animate = true, quality = 'high' }) {
       receiveShadow
       frustumCulled={false}
     >
-      <icosahedronGeometry args={[1, 1]} />
+      <icosahedronGeometry args={[1, 2]} />
       <meshStandardMaterial
         ref={matRef}
-        flatShading
-        roughness={0.95}
+        map={map}
+        normalMap={normalMap}
+        roughnessMap={roughnessMap}
+        normalScale={[0.7, 0.7]}
+        roughness={1}
         metalness={0}
         onBeforeCompile={onBeforeCompile}
       />
