@@ -8,6 +8,7 @@ export default function App() {
   return (
     <Canvas
       shadows
+      flat
       camera={CAMERA}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
       dpr={[1, 2]}
