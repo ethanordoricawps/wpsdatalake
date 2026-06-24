@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import VideoStage from './ui/VideoStage.jsx';
+import AmbientLife from './ui/AmbientLife.jsx';
 import LakeOverlay from './ui/LakeOverlay.jsx';
 import SectionLabels from './ui/SectionLabels.jsx';
 import Overlay from './ui/Overlay.jsx';
@@ -19,8 +20,10 @@ export default function App() {
     () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
   // phases: start (ground loop) -> swoop -> aerial. reduced jumps to aerial.
-  const [phase, setPhase] = useState(reduced ? 'aerial' : 'start');
-  const [entered, setEntered] = useState(reduced);
+  // ?aerial=1 dev flag: jump straight to the animated aerial (for testing).
+  const aerialDebug = PARAMS.has('aerial');
+  const [phase, setPhase] = useState(reduced || aerialDebug ? 'aerial' : 'start');
+  const [entered, setEntered] = useState(reduced || aerialDebug);
   const [counts, setCounts] = useState(START_COUNTS);
   const [answer, setAnswer] = useState({ text: '', ok: true });
   const [centroids, setCentroids] = useState(null);
@@ -78,6 +81,8 @@ export default function App() {
         soundOn={soundOn}
         onSwoopEnd={() => setPhase('aerial')}
       />
+
+      <AmbientLife active={aerial} animate={!reduced} />
 
       <LakeOverlay active={aerial} animate={!reduced} onHover={onHover} onQuery={onQuery} onReady={setCentroids} />
 

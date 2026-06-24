@@ -34,12 +34,13 @@ canvas {
   object-fit: cover; display: block;
   transition: opacity 0.5s ease;
 }
-.lake-overlay { position: fixed; inset: 0; z-index: 1; display: block; }
+.ambient-layer { position: fixed; inset: 0; z-index: 1; display: block; pointer-events: none; }
+.lake-overlay { position: fixed; inset: 0; z-index: 2; display: block; }
 /* hidden video kept alive only for its audio track */
 .stage-audio { position: fixed; left: 0; bottom: 0; width: 2px; height: 2px; opacity: 0; pointer-events: none; }
 
 /* ───────────────────────── section labels on the lake ──────────────────── */
-.lake-labels { position: fixed; inset: 0; z-index: 2; pointer-events: none; font-family: 'Inter', sans-serif; }
+.lake-labels { position: fixed; inset: 0; z-index: 3; pointer-events: none; font-family: 'Inter', sans-serif; }
 .lake-labels { opacity: 0; transition: opacity 1.2s ease; }
 .lake-labels.show { opacity: 1; }
 .lake-label {
@@ -59,7 +60,7 @@ canvas {
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 2;
+  z-index: 4;
   pointer-events: none;
   font-family: 'Inter', sans-serif;
   color: var(--ink);
