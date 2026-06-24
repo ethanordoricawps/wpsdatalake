@@ -65,28 +65,25 @@ export default function LakeOverlay({ active, animate = true, onHover, onQuery, 
         // ---- section glows: a color-tint pass (saturates the water) + a
         //      brighter additive pass (the glow), with pulse + hover ----
         ALL.forEach((k, i) => { const target = lake.hovered === k ? 1 : 0; hover[k] += (target - hover[k]) * 0.12; });
-        // passive: center-weighted glow (steady) — tint pass + additive pass
+        // Crossfade per section: at rest = center-weighted glow; on hover that
+        // fades OUT and a uniform body fill fades IN, so a hovered section is
+        // evenly bright across its whole body (no center hotspot).
+        // pass 1 — color tint (passive glow * (1-hover)  +  fill * hover)
         ctx.globalCompositeOperation = 'source-over';
         ALL.forEach((k) => {
-          const im = imgs.current[k]; if (!im || !im.width) return;
-          ctx.globalAlpha = k === 'inflow' ? 0.4 : 0.55;
-          ctx.drawImage(im, c.ox, c.oy, c.w, c.h);
+          const g = imgs.current[k], f = imgs.current[k + '_fill'];
+          const baseT = k === 'inflow' ? 0.4 : 0.55;
+          if (g && g.width && hover[k] < 0.99) { ctx.globalAlpha = baseT * (1 - hover[k]); ctx.drawImage(g, c.ox, c.oy, c.w, c.h); }
+          if (f && f.width && hover[k] > 0.01) { ctx.globalAlpha = 0.6 * hover[k]; ctx.drawImage(f, c.ox, c.oy, c.w, c.h); }
         });
+        // pass 2 — additive glow (same crossfade)
         ctx.globalCompositeOperation = 'lighter';
         ALL.forEach((k, i) => {
-          const im = imgs.current[k]; if (!im || !im.width) return;
+          const g = imgs.current[k], f = imgs.current[k + '_fill'];
           const pulse = animate ? 0.5 + 0.5 * Math.sin(t * 0.4 + i * 1.7) : 0.7;
           const base = k === 'inflow' ? 0.3 : 0.5;
-          ctx.globalAlpha = base * (0.65 + 0.35 * pulse);
-          ctx.drawImage(im, c.ox, c.oy, c.w, c.h);
-        });
-        // hover: brighten the WHOLE section body uniformly (flat fill mask),
-        // so the entire region lifts evenly instead of the center blowing out
-        ALL.forEach((k) => {
-          if (hover[k] < 0.01) return;
-          const fl = imgs.current[k + '_fill']; if (!fl || !fl.width) return;
-          ctx.globalAlpha = hover[k] * 0.5;
-          ctx.drawImage(fl, c.ox, c.oy, c.w, c.h);
+          if (g && g.width && hover[k] < 0.99) { ctx.globalAlpha = base * (0.65 + 0.35 * pulse) * (1 - hover[k]); ctx.drawImage(g, c.ox, c.oy, c.w, c.h); }
+          if (f && f.width && hover[k] > 0.01) { ctx.globalAlpha = base * (0.65 + 0.35 * pulse) * hover[k]; ctx.drawImage(f, c.ox, c.oy, c.w, c.h); }
         });
         ctx.globalAlpha = 1;
 
