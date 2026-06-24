@@ -24,14 +24,17 @@ function vennPos(a, centroids) {
   return [x / w + (a.nudge ? a.nudge[0] : 0), y / w + (a.nudge ? a.nudge[1] : 0)];
 }
 
-export default function AgentsLayer({ active, centroids, selectedId, onSelect, animate = true }) {
+export default function AgentsLayer({ active, centroids, selectedId, spotlightId, onSelect, animate = true }) {
   const [vp, setVp] = useState({ w: window.innerWidth, h: window.innerHeight });
   const [hoverId, setHoverId] = useState(null);
   const canvasRef = useRef();
-  // the agent whose RAG flows are drawn: hovered one wins, else the selected one
-  // (when selected, the card modal covers the lake — so hover is what shows it)
+  // the agent whose RAG flows are drawn: hovered wins, then a scenario spotlight,
+  // then the selected one (when selected the card modal covers the lake anyway)
   const focusRef = useRef(null);
-  focusRef.current = hoverId || selectedId;
+  focusRef.current = hoverId || spotlightId || selectedId;
+  // a scenario spotlight gets an exaggerated treatment so each element is legible
+  const spotRef = useRef(null);
+  spotRef.current = spotlightId;
   useEffect(() => {
     const r = () => setVp({ w: window.innerWidth, h: window.innerHeight });
     window.addEventListener('resize', r);
@@ -56,6 +59,8 @@ export default function AgentsLayer({ active, centroids, selectedId, onSelect, a
       const fid = focusRef.current;
       const a = fid && AGENTS.find((x) => x.id === fid);
       const ap = a && vennPos(a, centroids);
+      // during a walkthrough, amp every element up so it clearly "teaches"
+      const boost = !!fid && fid === spotRef.current;
       if (a && ap) {
         const [ax, ay] = toPx(ap[0], ap[1], c);
         ctx.globalCompositeOperation = 'lighter';
@@ -65,24 +70,24 @@ export default function AgentsLayer({ active, centroids, selectedId, onSelect, a
           const col = ZONES[k] ? ZONES[k].color : [180, 200, 180];
           const wt = a.sources[k];
           // slow-drifting motes from the basin to the agent; count + size scale
-          // with how much it draws here. Brightened (lifted toward white) so the
-          // dimmer basins still read, but kept dimmer + smaller than the dots.
-          const count = 3 + Math.round(wt * 9);
+          // with how much it draws here. Spotlight => denser, brighter, faster.
+          const count = (boost ? 6 : 3) + Math.round(wt * (boost ? 15 : 9));
+          const flow = boost ? 0.17 : 0.1;
           for (let i = 0; i < count; i++) {
-            const p = (t * 0.1 + i / count) % 1; // slow
+            const p = (t * flow + i / count) % 1;
             const e = p * p * (3 - 2 * p);
             const x = sx + (ax - sx) * e, y = sy + (ay - sy) * e;
             const fade = Math.sin(p * Math.PI);
-            ctx.fillStyle = rgbCssLight(col, 0.42, (0.5 + 0.4 * wt) * fade);
-            ctx.beginPath(); ctx.arc(x, y, (1.9 + 1.7 * wt) * fade + 0.7, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = rgbCssLight(col, boost ? 0.52 : 0.42, (boost ? 0.85 + 0.3 * wt : 0.5 + 0.4 * wt) * fade);
+            ctx.beginPath(); ctx.arc(x, y, (boost ? 2.8 + 2.4 * wt : 1.9 + 1.7 * wt) * fade + (boost ? 1 : 0.7), 0, Math.PI * 2); ctx.fill();
           }
         }
-        // soft halo where the currents converge on the agent
-        const pulse = 0.5 + 0.5 * Math.sin(t * 1.5);
+        // soft halo where the currents converge on the agent (bigger + brighter when spotlit)
+        const pulse = 0.5 + 0.5 * Math.sin(t * (boost ? 2.2 : 1.5));
         const pc = mixZoneColors(a.sources); // blended source color
-        const hr = 15 + 6 * pulse;
+        const hr = (boost ? 24 : 15) + (boost ? 11 : 6) * pulse;
         const g = ctx.createRadialGradient(ax, ay, 0, ax, ay, hr);
-        g.addColorStop(0, rgbCss(pc, 0.28 + 0.14 * pulse));
+        g.addColorStop(0, rgbCss(pc, (boost ? 0.5 : 0.28) + (boost ? 0.2 : 0.14) * pulse));
         g.addColorStop(1, rgbCss(pc, 0));
         ctx.fillStyle = g;
         ctx.beginPath(); ctx.arc(ax, ay, hr, 0, Math.PI * 2); ctx.fill();
@@ -113,7 +118,7 @@ export default function AgentsLayer({ active, centroids, selectedId, onSelect, a
         return (
           <button
             key={a.id}
-            className={`agent-dot ${on ? 'on' : ''} ${a.edge ? 'edge' : ''}`}
+            className={`agent-dot ${on ? 'on' : ''} ${a.id === spotlightId ? 'spotlight' : ''} ${a.edge ? 'edge' : ''}`}
             style={{ left: px, top: py, color: col }}
             onClick={() => onSelect(on ? null : a.id)}
             onPointerEnter={() => setHoverId(a.id)}
@@ -167,6 +172,16 @@ function CharterCard({ agent, onClose }) {
             <div className="zb-body">{agent[key]}</div>
           </div>
         ))}
+        {agent.trust && agent.trust.length > 0 && (
+          <div className="zone-block">
+            <div className="zb-label">Governance</div>
+            <div className="trust-badges">
+              {agent.trust.map((t) => (
+                <span className="trust-badge" key={t}><span className="tb-shield" />{t}</span>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="charter-foot">Illustrative — pending discovery</div>
       </div>
     </div>

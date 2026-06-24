@@ -114,8 +114,8 @@ export default function LakeOverlay({ active, animate = true, onHover, onQuery, 
               const rad = tt * maxR;
               offCtx.beginPath();
               offCtx.arc(px, py, rad, 0, Math.PI * 2);
-              offCtx.strokeStyle = `rgba(232,244,212,${(1 - r.t) * 0.6 * (1 - j * 0.2)})`;
-              offCtx.lineWidth = 2.4 * (1 - tt) + 1;
+              offCtx.strokeStyle = `rgba(232,244,212,${Math.min(1, (1 - r.t) * 0.6 * (1 - j * 0.2) * (r.amp || 1))})`;
+              offCtx.lineWidth = (2.4 * (1 - tt) + 1) * (r.amp > 1 ? 1.4 : 1);
               offCtx.stroke();
             }
           }

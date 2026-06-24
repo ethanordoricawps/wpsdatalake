@@ -11,6 +11,7 @@
 export const AGENTS = [
   {
     id: 'ranger',
+    trust: ['Human approval', 'Coordinates veiled', 'Cited sources'],
     name: 'Ranger Dispatch',
     creature: 'Heron',
     zone: 'field',
@@ -26,6 +27,7 @@ export const AGENTS = [
   },
   {
     id: 'grant',
+    trust: ['Human approval', 'Donor PII veiled', 'Cited sources'],
     name: 'Grant Scout',
     creature: 'Kingfisher',
     zone: 'fund',
@@ -41,6 +43,7 @@ export const AGENTS = [
   },
   {
     id: 'partner',
+    trust: ['Read-only', 'Partner-confidential', 'Cited sources'],
     name: 'Partner Sync',
     creature: 'Otter',
     zone: 'part',
@@ -55,6 +58,7 @@ export const AGENTS = [
   },
   {
     id: 'repo',
+    trust: ['Read-only', 'Secrets veiled', 'Cited sources'],
     name: 'Repo Sentinel',
     creature: 'Dragonfly',
     zone: 'eng',
@@ -69,6 +73,7 @@ export const AGENTS = [
   },
   {
     id: 'pipeline',
+    trust: ['Read-only', 'Secrets veiled', 'Cited sources'],
     name: 'Pipeline Watch',
     creature: 'Damselfly',
     zone: 'eng',
@@ -84,6 +89,7 @@ export const AGENTS = [
   },
   {
     id: 'sensor',
+    trust: ['Read-only', 'Coordinates veiled', 'Cited sources'],
     name: 'Sensor Sentinel',
     creature: 'Osprey',
     zone: 'field',
@@ -99,6 +105,7 @@ export const AGENTS = [
   },
   {
     id: 'impact',
+    trust: ['Read-only', 'Partner-confidential', 'Cited sources'],
     name: 'Impact Reporter',
     creature: 'Egret',
     zone: 'part',
@@ -114,6 +121,7 @@ export const AGENTS = [
   },
   {
     id: 'donor',
+    trust: ['Human approval', 'Donor PII veiled', 'Cited sources'],
     name: 'Donor Steward',
     creature: 'Swan',
     zone: 'fund',

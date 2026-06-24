@@ -32,6 +32,15 @@ export const ZONE_HEALTH = {
   fund:  { score: 0.22, note: 'Grants ledger sync failing since last night.' },
 };
 
+// What each basin protects — the governance posture surfaced in its card and
+// echoed by the agents that draw from it. Illustrative — pending discovery.
+export const ZONE_GOVERNANCE = {
+  eng:   ['Secrets & keys veiled', 'Read-only access'],
+  field: ['Exact coordinates veiled', 'Read-only access'],
+  part:  ['Partner-confidential terms honored', 'Read-only access'],
+  fund:  ['Donor PII veiled', 'Human approves anything sent'],
+};
+
 // Health tier label from a score.
 export function healthStatus(score) {
   return score >= 0.75 ? 'Healthy' : score >= 0.4 ? 'Warning' : 'Issue';

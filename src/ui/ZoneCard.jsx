@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { ZONES, ZONE_HEALTH, healthColor, healthStatus, rgbCss, rgbCssLight, mixZoneColors } from '../data/zones.js';
+import { ZONES, ZONE_HEALTH, ZONE_GOVERNANCE, healthColor, healthStatus, rgbCss, rgbCssLight, mixZoneColors } from '../data/zones.js';
 import { AGENTS } from '../data/agents.js';
 
 // A function-basin briefing: where its data comes from, how it's queried
@@ -76,6 +76,17 @@ export default function ZoneCard({ zoneKey, counts, onClose }) {
             {z.sources.map((s, i) => <span key={i} className="zone-chip">{s}</span>)}
           </div>
         </div>
+
+        {ZONE_GOVERNANCE[zoneKey] && (
+          <div className="zone-block">
+            <div className="zb-label">Governance</div>
+            <div className="trust-badges">
+              {ZONE_GOVERNANCE[zoneKey].map((g) => (
+                <span className="trust-badge" key={g}><span className="tb-shield" />{g}</span>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="zone-block">
           <div className="zb-label">Human vs agent queries</div>

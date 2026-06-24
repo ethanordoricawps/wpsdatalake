@@ -6,9 +6,13 @@ import SectionLabels from './ui/SectionLabels.jsx';
 import Overlay from './ui/Overlay.jsx';
 import AgentsLayer from './ui/AgentsLayer.jsx';
 import ZoneCard from './ui/ZoneCard.jsx';
+import Legend from './ui/Legend.jsx';
+import ScenarioLauncher from './ui/ScenarioLauncher.jsx';
+import ScenarioPlayer from './ui/ScenarioPlayer.jsx';
 import EnterGate from './ui/EnterGate.jsx';
 import { addRipple, lake } from './lake-state.js';
 import { START_COUNTS, ZONES, ZONE_KEYS, askLake } from './data/zones.js';
+import { SCENARIOS } from './data/scenarios.js';
 
 // Archived real-time 3D scene — lazy so its heavy three.js bundle only loads on ?mode=3d
 const App3D = lazy(() => import('./App3D.jsx'));
@@ -31,9 +35,17 @@ export default function App() {
   const [centroids, setCentroids] = useState(null);
   const [agentId, setAgentId] = useState(null); // selected agent (null = none; card hidden)
   const [zoneCard, setZoneCard] = useState(null); // function basin whose briefing is open
+  const [scene, setScene] = useState(() => {
+    const s = PARAMS.get('scene');
+    return s && SCENARIOS.some((x) => x.id === s) ? s : null;
+  });
+  const [spotlightAgent, setSpotlightAgent] = useState(null); // agent lit by a running scenario
   const soundOn = false; // audio cut for now (videos stay muted)
 
   const aerial = phase === 'aerial';
+  const runningScene = scene ? SCENARIOS.find((s) => s.id === scene) : null;
+  const sceneRef = useRef(scene);
+  sceneRef.current = scene;
 
   // a basin was queried: ripple + bump its live count (2D hitZone)
   const hitZone = useCallback((k) => {
@@ -42,15 +54,17 @@ export default function App() {
     setCounts((c) => ({ ...c, [k]: c[k] + 1 }));
   }, []);
 
-  // auto-life: occasionally ripple a random basin on the aerial view (sparse,
-  // so the lake feels alive without constant pinging)
+  // auto-life: occasionally ripple a random basin so the lake feels alive —
+  // but completely halted during a walkthrough so it can't interfere
   const hitRef = useRef(hitZone);
   hitRef.current = hitZone;
   useEffect(() => {
-    if (reduced || !aerial) return;
-    const id = setInterval(() => hitRef.current(ZONE_KEYS[(Math.random() * ZONE_KEYS.length) | 0]), 11000);
-    return () => clearInterval(id);
-  }, [reduced, aerial]);
+    if (reduced || !aerial || scene) return;
+    const ping = () => hitRef.current(ZONE_KEYS[(Math.random() * ZONE_KEYS.length) | 0]);
+    const first = setTimeout(ping, 1800); // one soon after the lake appears
+    const id = setInterval(ping, 9000);
+    return () => { clearTimeout(first); clearInterval(id); };
+  }, [reduced, aerial, scene]);
 
   const onHover = useCallback((z) => {
     lake.hovered = z; // read by LakeOverlay's draw loop (no React re-render needed)
@@ -62,17 +76,32 @@ export default function App() {
     setAnswer({ text, ok: true, sources: ZONES[z].sources });
   }, [hitZone]);
 
-  // clicking a basin opens its briefing card (and closes any agent card)
+  // clicking a basin opens its briefing card (suppressed during a walkthrough)
   const onQuery = useCallback((z) => {
-    if (!ZONES[z]) return;
+    if (sceneRef.current || !ZONES[z]) return;
     setAgentId(null);
     setZoneCard(z);
   }, []);
 
-  // selecting an agent closes any open basin card
+  // selecting an agent closes any open basin card (suppressed during a walkthrough)
   const onSelectAgent = useCallback((id) => {
+    if (sceneRef.current) return;
     setZoneCard(null);
     setAgentId(id);
+  }, []);
+
+  // walkthrough ripple: bolder than a normal click so the data event reads clearly
+  const sceneRipple = useCallback((k) => {
+    if (!ZONES[k]) return;
+    addRipple(k, 2.4);
+    setCounts((c) => ({ ...c, [k]: c[k] + 1 }));
+  }, []);
+
+  const startScene = useCallback((id) => {
+    setAgentId(null); setZoneCard(null); setSpotlightAgent(null); setScene(id);
+  }, []);
+  const stopScene = useCallback(() => {
+    setScene(null); setSpotlightAgent(null);
   }, []);
 
   const onAsk = useCallback((q) => {
@@ -103,9 +132,17 @@ export default function App() {
 
       <Overlay visible={aerial} answer={answer} onAsk={onAsk} />
 
-      <AgentsLayer active={aerial} centroids={centroids} selectedId={agentId} onSelect={onSelectAgent} animate={!reduced} />
+      <AgentsLayer active={aerial} centroids={centroids} selectedId={agentId} spotlightId={spotlightAgent} onSelect={onSelectAgent} animate={!reduced} />
 
       {aerial && zoneCard && <ZoneCard zoneKey={zoneCard} counts={counts} onClose={() => setZoneCard(null)} />}
+
+      <Legend visible={aerial && !runningScene} />
+
+      {aerial && !runningScene && <ScenarioLauncher visible onStart={startScene} />}
+
+      {aerial && runningScene && (
+        <ScenarioPlayer scenario={runningScene} onRipple={sceneRipple} onSpotlight={setSpotlightAgent} onExit={stopScene} />
+      )}
 
       {!entered && <EnterGate onEnter={onEnter} />}
     </>

@@ -19,11 +19,12 @@ export function addFlow(key) {
   lake.flows.push({ key, t: 0 });
 }
 
-// Spawn an expanding ripple at a basin (the 2D hitZone ripple).
-export function addRipple(key) {
+// Spawn an expanding ripple at a basin (the 2D hitZone ripple). `amp` (>1)
+// makes it brighter/bolder — used to emphasize a walkthrough's data event.
+export function addRipple(key, amp = 1) {
   if (!ZONES[key]) return;
   if (lake.ripples.length >= MAX_RIPPLES) lake.ripples.shift();
-  lake.ripples.push({ key, t: 0, color: rgb01(ZONES[key].color), cx: CELLS.cells[key].cx, cz: CELLS.cells[key].cz });
+  lake.ripples.push({ key, t: 0, amp, color: rgb01(ZONES[key].color), cx: CELLS.cells[key].cx, cz: CELLS.cells[key].cz });
 }
 
 // dev-only debug handle (used for headless verification)
