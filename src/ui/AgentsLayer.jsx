@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AGENTS, CHARTER_FIELDS } from '../data/agents.js';
-import { ZONES, rgbCss, rgbCssLight } from '../data/zones.js';
+import { ZONES, rgbCss, rgbCssLight, mixZoneColors } from '../data/zones.js';
 
 function cover(vw, vh) {
   const arV = 16 / 9;
@@ -23,10 +23,6 @@ function vennPos(a, centroids) {
   // optional manual nudge (normalized frame units) to clear an overlap
   return [x / w + (a.nudge ? a.nudge[0] : 0), y / w + (a.nudge ? a.nudge[1] : 0)];
 }
-const primaryZone = (a) => {
-  const ks = Object.keys(a.sources);
-  return ks.reduce((best, k) => (a.sources[k] > a.sources[best] ? k : best), ks[0]);
-};
 
 export default function AgentsLayer({ active, centroids, selectedId, onSelect, animate = true }) {
   const [vp, setVp] = useState({ w: window.innerWidth, h: window.innerHeight });
@@ -79,7 +75,7 @@ export default function AgentsLayer({ active, centroids, selectedId, onSelect, a
         }
         // soft halo where the currents converge on the agent
         const pulse = 0.5 + 0.5 * Math.sin(t * 1.5);
-        const pc = ZONES[primaryZone(a)] ? ZONES[primaryZone(a)].color : [210, 225, 190];
+        const pc = mixZoneColors(a.sources); // blended source color
         const hr = 15 + 6 * pulse;
         const g = ctx.createRadialGradient(ax, ay, 0, ax, ay, hr);
         g.addColorStop(0, rgbCss(pc, 0.28 + 0.14 * pulse));
@@ -106,7 +102,7 @@ export default function AgentsLayer({ active, centroids, selectedId, onSelect, a
         const [px, py] = toPx(ap[0], ap[1], c);
         // lift the zone tint well toward white so the dot stays legible on the
         // water — it keeps a hint of its primary color for identity
-        const col = rgbCssLight(ZONES[primaryZone(a)].color, 0.58);
+        const col = rgbCssLight(mixZoneColors(a.sources), 0.58); // dot = blend of its sources
         const on = a.id === selectedId;
         return (
           <button
@@ -137,25 +133,32 @@ function CharterCard({ agent, onClose }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
+  // shares the zone card's layout/typography (labeled blocks), set apart by the
+  // agent's blended source color as its accent
+  const accent = rgbCssLight(mixZoneColors(agent.sources), 0.4);
   return (
     <div className="charter-backdrop" onClick={onClose}>
-      <div className="charter" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
-        <div className="charter-head">
-          <span className="charter-dot" style={{ background: rgbCss(ZONES[primaryZone(agent)].color) }} />
-          <div className="charter-head-text">
-            <div className="charter-name">{agent.name}</div>
-            <div className="charter-sub">{agent.creature} · {agent.status}</div>
+      <div
+        className="zone-card agent-card"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        style={{ borderTopColor: accent }}
+      >
+        <div className="zone-head">
+          <span className="zone-dot" style={{ background: accent, boxShadow: `0 0 14px ${accent}` }} />
+          <div className="zone-head-text">
+            <div className="zone-name" style={{ color: accent }}>{agent.name}</div>
+            <div className="zone-sub">{agent.creature} · {agent.status}</div>
           </div>
           <button className="charter-close" onClick={onClose} aria-label="Close charter">×</button>
         </div>
-        <dl className="charter-fields">
-          {CHARTER_FIELDS.map(([key, label]) => (
-            <div className="charter-row" key={key}>
-              <dt>{label}</dt>
-              <dd>{agent[key]}</dd>
-            </div>
-          ))}
-        </dl>
+        {CHARTER_FIELDS.map(([key, label]) => (
+          <div className="zone-block" key={key}>
+            <div className="zb-label">{label}</div>
+            <div className="zb-body">{agent[key]}</div>
+          </div>
+        ))}
         <div className="charter-foot">Illustrative — pending discovery</div>
       </div>
     </div>

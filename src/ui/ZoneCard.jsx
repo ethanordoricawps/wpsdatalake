@@ -1,11 +1,6 @@
 import { useEffect } from 'react';
-import { ZONES, rgbCss, rgbCssLight } from '../data/zones.js';
+import { ZONES, ZONE_HEALTH, healthColor, healthStatus, rgbCss, rgbCssLight, mixZoneColors } from '../data/zones.js';
 import { AGENTS } from '../data/agents.js';
-
-const primaryZoneOf = (a) => {
-  const ks = Object.keys(a.sources);
-  return ks.reduce((best, k) => (a.sources[k] > a.sources[best] ? k : best), ks[0]);
-};
 
 // A function-basin briefing: where its data comes from, how it's queried
 // (human vs agent), its share of the lake, and which agents draw from it.
@@ -37,6 +32,10 @@ export default function ZoneCard({ zoneKey, counts, onClose }) {
   const accent = rgbCss(z.color);
   const accentLight = rgbCssLight(z.color, 0.5);
 
+  const health = ZONE_HEALTH[zoneKey] || { score: 1, note: '' };
+  const hc = rgbCss(healthColor(health.score));
+  const hStatus = healthStatus(health.score);
+
   return (
     <div className="charter-backdrop" onClick={onClose}>
       <div
@@ -53,6 +52,11 @@ export default function ZoneCard({ zoneKey, counts, onClose }) {
             <div className="zone-sub">Function basin · live</div>
           </div>
           <button className="charter-close" onClick={onClose} aria-label="Close">×</button>
+        </div>
+
+        <div className="zone-health" style={{ borderColor: hc }}>
+          <span className="zh-badge" style={{ background: hc }}>{hStatus}</span>
+          <span className="zh-note">{health.note}</span>
         </div>
 
         <div className="zone-stats">
@@ -92,7 +96,7 @@ export default function ZoneCard({ zoneKey, counts, onClose }) {
                 <li key={a.id}>
                   <span
                     className="za-dot"
-                    style={{ background: rgbCssLight(ZONES[primaryZoneOf(a)].color, 0.5) }}
+                    style={{ background: rgbCssLight(mixZoneColors(a.sources), 0.5) }}
                   />
                   <span className="za-name">{a.name}{a.edge ? ' · edge case' : ''}</span>
                   <span className="za-creature">{a.creature}</span>

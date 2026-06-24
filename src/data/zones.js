@@ -22,6 +22,29 @@ export const ZONES = {
 // Display order (matches the 2D file's label corners: TL, TR, BL, BR)
 export const ZONE_KEYS = ['eng', 'field', 'part', 'fund'];
 
+// Illustrative basin "health" (0 = critical .. 1 = healthy) + a short note.
+// Kept separate from the zone identity color: health is a status layer, not the
+// zone's identity. All illustrative — pending discovery.
+export const ZONE_HEALTH = {
+  eng:   { score: 0.94, note: 'All sources syncing normally.' },
+  field: { score: 0.83, note: 'All sources syncing; one camera feed lagging.' },
+  part:  { score: 0.5,  note: 'Partner records last synced 9 days ago — approaching stale.' },
+  fund:  { score: 0.22, note: 'Grants ledger sync failing since last night.' },
+};
+
+// Health tier label from a score.
+export function healthStatus(score) {
+  return score >= 0.75 ? 'Healthy' : score >= 0.4 ? 'Warning' : 'Issue';
+}
+
+// green (healthy) -> amber (warning) -> red (issue) gradient. Returns [r,g,b].
+export function healthColor(score) {
+  const s = Math.max(0, Math.min(1, score));
+  const red = [248, 81, 73], amber = [230, 168, 60], green = [63, 185, 80];
+  const lerp = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+  return s < 0.5 ? lerp(red, amber, s / 0.5) : lerp(amber, green, (s - 0.5) / 0.5);
+}
+
 // Starting query counts (the live "queries served" tickers in the 2D version)
 export const START_COUNTS = { eng: 1204, field: 847, part: 612, fund: 933 };
 
@@ -94,4 +117,15 @@ export function rgbCss(c, a = 1) {
 export function rgbCssLight(c, amt = 0.42, a = 1) {
   const m = (v) => Math.round(v + (255 - v) * amt);
   return rgbCss([m(c[0]), m(c[1]), m(c[2])], a);
+}
+
+// weighted blend of basin colors — e.g. an agent's source mix, so its dot reads
+// as a mixture of the sections it draws from. Returns [r,g,b].
+export function mixZoneColors(sources) {
+  let r = 0, g = 0, b = 0, w = 0;
+  for (const k in sources) {
+    const c = ZONES[k] && ZONES[k].color; if (!c) continue;
+    const wt = sources[k]; r += c[0] * wt; g += c[1] * wt; b += c[2] * wt; w += wt;
+  }
+  return w ? [r / w, g / w, b / w] : [200, 210, 190];
 }
