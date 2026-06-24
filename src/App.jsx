@@ -10,7 +10,7 @@ import Legend from './ui/Legend.jsx';
 import ScenarioLauncher from './ui/ScenarioLauncher.jsx';
 import ScenarioPlayer from './ui/ScenarioPlayer.jsx';
 import EnterGate from './ui/EnterGate.jsx';
-import { addRipple, lake } from './lake-state.js';
+import { addRipple, clearRipples, lake } from './lake-state.js';
 import { START_COUNTS, ZONES, ZONE_KEYS, askLake } from './data/zones.js';
 import { SCENARIOS } from './data/scenarios.js';
 
@@ -98,6 +98,7 @@ export default function App() {
   }, []);
 
   const startScene = useCallback((id) => {
+    clearRipples(); // drop any in-flight auto-ping so it doesn't linger into the walkthrough
     setAgentId(null); setZoneCard(null); setSpotlightAgent(null); setScene(id);
   }, []);
   const stopScene = useCallback(() => {

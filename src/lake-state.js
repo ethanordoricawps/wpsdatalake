@@ -19,6 +19,13 @@ export function addFlow(key) {
   lake.flows.push({ key, t: 0 });
 }
 
+// Immediately clear all in-flight ripples/flows (e.g. when a walkthrough starts
+// so a stray auto-ping doesn't linger over the scene).
+export function clearRipples() {
+  lake.ripples.length = 0;
+  lake.flows.length = 0;
+}
+
 // Spawn an expanding ripple at a basin (the 2D hitZone ripple). `amp` (>1)
 // makes it brighter/bolder — used to emphasize a walkthrough's data event.
 export function addRipple(key, amp = 1) {
