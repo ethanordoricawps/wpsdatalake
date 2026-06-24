@@ -6,10 +6,18 @@ import { ZONES, rgb01 } from './data/zones.js';
 
 export const lake = {
   ripples: [], // { key, t, color:[r,g,b 0..1] }
+  flows: [], // retrieval flows { key, t } — currents converging to the draw point
   hovered: null, // basin key under the pointer (drives glow lift)
 };
 
 const MAX_RIPPLES = 14;
+
+// Spawn a retrieval "current" from a basin toward the draw point (RAG viz).
+export function addFlow(key) {
+  if (!ZONES[key]) return;
+  if (lake.flows.length >= 6) lake.flows.shift();
+  lake.flows.push({ key, t: 0 });
+}
 
 // Spawn an expanding ripple at a basin (the 2D hitZone ripple).
 export function addRipple(key) {
@@ -20,5 +28,5 @@ export function addRipple(key) {
 
 // dev-only debug handle (used for headless verification)
 if (import.meta.env && import.meta.env.DEV) {
-  window.__lake = { lake, addRipple };
+  window.__lake = { lake, addRipple, addFlow };
 }

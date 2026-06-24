@@ -36,6 +36,7 @@ canvas {
 }
 .ambient-layer { position: fixed; inset: 0; z-index: 1; display: block; pointer-events: none; }
 .lake-overlay { position: fixed; inset: 0; z-index: 2; display: block; }
+.retrieval-layer { position: fixed; inset: 0; z-index: 2; display: block; pointer-events: none; }
 /* hidden video kept alive only for its audio track */
 .stage-audio { position: fixed; left: 0; bottom: 0; width: 2px; height: 2px; opacity: 0; pointer-events: none; }
 
@@ -176,6 +177,17 @@ canvas {
 .ov-ask .answer {
   min-height: 18px; font-size: 13px; line-height: 1.5; max-width: 680px; text-align: center;
   text-shadow: 0 1px 10px rgba(2,10,5,.8);
+}
+.ov-sources {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 7px;
+}
+.ov-sources .src-lead {
+  font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: #8A9680;
+}
+.ov-sources .src-chip {
+  font-size: 11px; color: #C4CCB8; padding: 3px 9px; border-radius: 999px;
+  border: 1px solid rgba(160,200,140,.28); background: rgba(9,24,15,.5);
+  text-shadow: 0 1px 8px rgba(2,10,5,.8);
 }
 
 /* sound toggle */

@@ -41,6 +41,14 @@ export default function Overlay({ visible, answer, onAsk, showAsk = true, qualit
         <div className="answer" role="status" aria-live="polite" style={{ color: answer.ok ? '#A7DD8C' : '#BAC4AE' }}>
           {answer.text}
         </div>
+        {answer.sources && answer.sources.length > 0 && (
+          <div className="ov-sources">
+            <span className="src-lead">Sources</span>
+            {answer.sources.map((s, i) => (
+              <span key={i} className="src-chip">{s}</span>
+            ))}
+          </div>
+        )}
       </div>
 
       {onToggleQuality && (

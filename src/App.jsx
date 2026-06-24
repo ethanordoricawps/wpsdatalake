@@ -2,11 +2,12 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import VideoStage from './ui/VideoStage.jsx';
 import AmbientLife from './ui/AmbientLife.jsx';
 import LakeOverlay from './ui/LakeOverlay.jsx';
+import RetrievalLayer from './ui/RetrievalLayer.jsx';
 import SectionLabels from './ui/SectionLabels.jsx';
 import Overlay from './ui/Overlay.jsx';
 import ModeRail from './ui/ModeRail.jsx';
 import EnterGate from './ui/EnterGate.jsx';
-import { addRipple, lake } from './lake-state.js';
+import { addRipple, addFlow, lake } from './lake-state.js';
 import { START_COUNTS, ZONES, ZONE_KEYS, askLake } from './data/zones.js';
 
 // Archived real-time 3D scene — lazy so its heavy three.js bundle only loads on ?mode=3d
@@ -54,21 +55,23 @@ export default function App() {
     document.body.style.cursor = z ? 'pointer' : 'default';
   }, []);
 
+  const surface = useCallback((z, text) => {
+    hitZone(z);
+    setAnswer({ text, ok: true, sources: ZONES[z].sources });
+    if (mode === 'retrieve') addFlow(z); // converging current in RAG mode
+  }, [hitZone, mode]);
+
   const onQuery = useCallback((z) => {
     if (!ZONES[z]) return;
-    hitZone(z);
     const Z = ZONES[z];
-    setAnswer({
-      text: `${Z.name} draws from ${Z.sources[0]} and ${Z.sources[1]}.  Illustrative — pending discovery.`,
-      ok: true,
-    });
-  }, [hitZone]);
+    surface(z, `${Z.name} draws from ${Z.sources[0]} and ${Z.sources[1]}.  Illustrative — pending discovery.`);
+  }, [surface]);
 
   const onAsk = useCallback((q) => {
     const r = askLake(q);
-    if (r.zone) hitZone(r.zone);
-    setAnswer({ text: r.answer, ok: r.ok });
-  }, [hitZone]);
+    if (r.zone) surface(r.zone, r.answer);
+    else setAnswer({ text: r.answer, ok: r.ok });
+  }, [surface]);
 
   const onEnter = useCallback(() => {
     setEntered(true);
@@ -87,6 +90,8 @@ export default function App() {
       <AmbientLife active={aerial} animate={!reduced} />
 
       <LakeOverlay active={aerial} animate={!reduced} onHover={onHover} onQuery={onQuery} onReady={setCentroids} />
+
+      <RetrievalLayer active={aerial} centroids={centroids} animate={!reduced} />
 
       <SectionLabels centroids={centroids} counts={counts} visible={aerial && mode !== 'agents'} />
 
