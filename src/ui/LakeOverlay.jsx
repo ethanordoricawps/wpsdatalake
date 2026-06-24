@@ -95,7 +95,7 @@ export default function LakeOverlay({ active, animate = true, onHover, onQuery, 
         const byZone = {};
         for (let i = rs.length - 1; i >= 0; i--) {
           const r = rs[i];
-          if (animate) r.t += 0.006; // slower expansion
+          if (animate) r.t += 0.0034; // slow, watery expansion (reads as a ripple, not a beacon)
           if (r.t >= 1) { rs.splice(i, 1); continue; }
           (byZone[r.key] || (byZone[r.key] = [])).push(r);
         }

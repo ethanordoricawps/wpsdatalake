@@ -2,12 +2,11 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import VideoStage from './ui/VideoStage.jsx';
 import AmbientLife from './ui/AmbientLife.jsx';
 import LakeOverlay from './ui/LakeOverlay.jsx';
-import RetrievalLayer from './ui/RetrievalLayer.jsx';
 import SectionLabels from './ui/SectionLabels.jsx';
 import Overlay from './ui/Overlay.jsx';
 import AgentsLayer from './ui/AgentsLayer.jsx';
 import EnterGate from './ui/EnterGate.jsx';
-import { addRipple, addFlow, lake } from './lake-state.js';
+import { addRipple, lake } from './lake-state.js';
 import { START_COUNTS, ZONES, ZONE_KEYS, askLake } from './data/zones.js';
 
 // Archived real-time 3D scene — lazy so its heavy three.js bundle only loads on ?mode=3d
@@ -41,12 +40,13 @@ export default function App() {
     setCounts((c) => ({ ...c, [k]: c[k] + 1 }));
   }, []);
 
-  // auto-life: every ~2.2s ripple a random basin once on the aerial view
+  // auto-life: occasionally ripple a random basin on the aerial view (sparse,
+  // so the lake feels alive without constant pinging)
   const hitRef = useRef(hitZone);
   hitRef.current = hitZone;
   useEffect(() => {
     if (reduced || !aerial) return;
-    const id = setInterval(() => hitRef.current(ZONE_KEYS[(Math.random() * ZONE_KEYS.length) | 0]), 2200);
+    const id = setInterval(() => hitRef.current(ZONE_KEYS[(Math.random() * ZONE_KEYS.length) | 0]), 11000);
     return () => clearInterval(id);
   }, [reduced, aerial]);
 
@@ -58,14 +58,14 @@ export default function App() {
   const surface = useCallback((z, text) => {
     hitZone(z);
     setAnswer({ text, ok: true, sources: ZONES[z].sources });
-    addFlow(z); // converging current toward the draw point (RAG)
   }, [hitZone]);
 
+  // clicking a basin just ripples it (no answer text / source chips — those are
+  // reserved for an actual typed question)
   const onQuery = useCallback((z) => {
     if (!ZONES[z]) return;
-    const Z = ZONES[z];
-    surface(z, `${Z.name} draws from ${Z.sources[0]} and ${Z.sources[1]}.  Illustrative — pending discovery.`);
-  }, [surface]);
+    hitZone(z);
+  }, [hitZone]);
 
   const onAsk = useCallback((q) => {
     const r = askLake(q);
@@ -90,8 +90,6 @@ export default function App() {
       <AmbientLife active={aerial} animate={!reduced} />
 
       <LakeOverlay active={aerial} animate={!reduced} onHover={onHover} onQuery={onQuery} onReady={setCentroids} />
-
-      <RetrievalLayer active={aerial} centroids={centroids} animate={!reduced} />
 
       <SectionLabels centroids={centroids} counts={counts} visible={aerial} />
 
