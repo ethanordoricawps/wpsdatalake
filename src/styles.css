@@ -137,9 +137,11 @@ canvas {
   animation: wps-pillpulse 4s ease-in-out infinite;
 }
 .about-card { border-top-color: #A7DD8C; }
-.about-list { margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; }
-.about-list li { position: relative; padding-left: 16px; font-size: 13px; line-height: 1.5; color: #D6DCC9; }
-.about-list li::before { content: ''; position: absolute; left: 0; top: 8px; width: 6px; height: 6px; border-radius: 50%; background: #8FCB6E; }
+.about-card .zb-label { font-size: 10px; }
+.about-card .zb-body { font-size: 15px; line-height: 1.6; }
+.about-list { margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.about-list li { position: relative; padding-left: 17px; font-size: 15px; line-height: 1.6; color: #D6DCC9; }
+.about-list li::before { content: ''; position: absolute; left: 0; top: 9px; width: 6px; height: 6px; border-radius: 50%; background: #8FCB6E; }
 .ov-pill .dot {
   width: 7px; height: 7px; border-radius: 50%; background: #A7DD8C;
   box-shadow: 0 0 8px #A7DD8C; animation: wps-dotpulse 2.6s ease-in-out infinite;
