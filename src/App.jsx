@@ -4,6 +4,7 @@ import AmbientLife from './ui/AmbientLife.jsx';
 import LakeOverlay from './ui/LakeOverlay.jsx';
 import SectionLabels from './ui/SectionLabels.jsx';
 import Overlay from './ui/Overlay.jsx';
+import ModeRail from './ui/ModeRail.jsx';
 import EnterGate from './ui/EnterGate.jsx';
 import { addRipple, lake } from './lake-state.js';
 import { START_COUNTS, ZONES, ZONE_KEYS, askLake } from './data/zones.js';
@@ -27,6 +28,7 @@ export default function App() {
   const [counts, setCounts] = useState(START_COUNTS);
   const [answer, setAnswer] = useState({ text: '', ok: true });
   const [centroids, setCentroids] = useState(null);
+  const [mode, setMode] = useState('lake'); // lake -> retrieve -> agents
   const soundOn = false; // audio cut for now (videos stay muted)
 
   const aerial = phase === 'aerial';
@@ -86,9 +88,11 @@ export default function App() {
 
       <LakeOverlay active={aerial} animate={!reduced} onHover={onHover} onQuery={onQuery} onReady={setCentroids} />
 
-      <SectionLabels centroids={centroids} counts={counts} visible={aerial} />
+      <SectionLabels centroids={centroids} counts={counts} visible={aerial && mode !== 'agents'} />
 
-      <Overlay visible={aerial} answer={answer} onAsk={onAsk} />
+      <Overlay visible={aerial} answer={answer} onAsk={onAsk} showAsk={mode !== 'agents'} />
+
+      <ModeRail mode={mode} setMode={setMode} visible={aerial} />
 
       {!entered && <EnterGate onEnter={onEnter} />}
     </>

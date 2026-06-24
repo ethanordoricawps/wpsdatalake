@@ -3,7 +3,7 @@ import { useRef } from 'react';
 // HTML chrome over the lake: header (title + demo-data pill), the "Ask the
 // lake" box, and (3D fallback only) an HD/LO quality toggle. The per-section
 // labels live on the lake itself (SectionLabels); legibility scrims sit behind.
-export default function Overlay({ visible, answer, onAsk, quality, onToggleQuality }) {
+export default function Overlay({ visible, answer, onAsk, showAsk = true, quality, onToggleQuality }) {
   const inputRef = useRef();
   const submit = () => onAsk(inputRef.current ? inputRef.current.value : '');
 
@@ -26,7 +26,7 @@ export default function Overlay({ visible, answer, onAsk, quality, onToggleQuali
       </header>
 
       {/* ask the lake */}
-      <div className="ov-ask">
+      <div className="ov-ask" style={{ display: showAsk ? 'flex' : 'none' }}>
         <div className="row">
           <label className="lead" htmlFor="ask-input">Ask the lake</label>
           <input
