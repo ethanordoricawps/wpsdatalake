@@ -88,3 +88,10 @@ export function rgb01(c) {
 export function rgbCss(c, a = 1) {
   return a === 1 ? `rgb(${c[0]},${c[1]},${c[2]})` : `rgba(${c[0]},${c[1]},${c[2]},${a})`;
 }
+
+// lift a zone color toward white so label text stays legible over the water
+// (the raw basin tints — esp. partnerships/fundraising — read too pale as text)
+export function rgbCssLight(c, amt = 0.42, a = 1) {
+  const m = (v) => Math.round(v + (255 - v) * amt);
+  return rgbCss([m(c[0]), m(c[1]), m(c[2])], a);
+}

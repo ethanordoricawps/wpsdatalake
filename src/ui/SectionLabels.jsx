@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ZONES, rgbCss } from '../data/zones.js';
+import { ZONES, rgbCssLight } from '../data/zones.js';
 
 // object-fit:cover mapping of the 16:9 frame into the viewport
 function cover(vw, vh) {
@@ -29,9 +29,9 @@ export default function SectionLabels({ centroids, counts, visible }) {
         const z = ZONES[k];
         return (
           <div key={k} className="lake-label" style={{ left: p.left, top: p.top }}>
-            <div className="ll-name" style={{ color: rgbCss(z.color) }}>{z.name}</div>
+            <div className="ll-name" style={{ color: rgbCssLight(z.color) }}>{z.name}</div>
             <div className="ll-count">
-              <span className="ll-num" style={{ color: rgbCss(z.color) }}>{counts[k].toLocaleString('en-US')}</span>
+              <span className="ll-num" style={{ color: rgbCssLight(z.color) }}>{counts[k].toLocaleString('en-US')}</span>
               <span className="ll-q">queries</span>
             </div>
           </div>

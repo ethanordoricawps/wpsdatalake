@@ -46,12 +46,12 @@ canvas {
 .lake-labels.show { opacity: 1; }
 .lake-label {
   position: absolute; transform: translate(-50%, -50%); text-align: center; white-space: nowrap;
-  text-shadow: 0 1px 10px rgba(2,10,5,.95), 0 0 22px rgba(2,10,5,.7);
+  text-shadow: 0 1px 4px rgba(2,10,5,1), 0 1px 12px rgba(2,10,5,.95), 0 0 26px rgba(2,10,5,.85);
 }
 .lake-label .ll-name { font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
 .lake-label .ll-count { margin-top: 3px; display: flex; align-items: baseline; justify-content: center; gap: 5px; }
 .lake-label .ll-num { font-family: 'IBM Plex Mono', monospace; font-size: 17px; letter-spacing: -.02em; }
-.lake-label .ll-q { font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: #9fb39a; }
+.lake-label .ll-q { font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: #C7D4BE; }
 .lake-label.inflow .ll-tag {
   font-size: 10px; font-weight: 500; letter-spacing: .16em; text-transform: uppercase;
   color: rgba(225,240,220,.8); font-style: italic;
@@ -278,11 +278,16 @@ canvas {
   margin: 0; font-family: 'Fraunces', serif; font-weight: 400; font-size: clamp(34px, 6vw, 64px);
   letter-spacing: .3px; color: #F4EEDD; text-align: center; text-shadow: 0 4px 30px rgba(2,10,5,.9);
 }
-.gate .sub { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.gate .sub {
+  font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #DCE4D2;
+  text-shadow: 0 1px 3px rgba(2,10,5,.95), 0 1px 14px rgba(2,10,5,.8);
+}
 .gate .enter {
   margin-top: 6px; padding: 13px 30px; border-radius: 999px;
-  border: 1px solid rgba(160,200,140,.4); background: rgba(120,170,90,.14);
-  color: #CDE6A6; font-size: 13px; letter-spacing: .14em; text-transform: uppercase;
+  border: 1px solid rgba(175,215,150,.6); background: rgba(60,95,45,.55);
+  backdrop-filter: blur(3px);
+  color: #E9F6D5; font-size: 13px; letter-spacing: .14em; text-transform: uppercase;
+  text-shadow: 0 1px 4px rgba(2,10,5,.85);
   display: flex; align-items: center; gap: 10px; animation: wps-pillpulse 3.4s ease-in-out infinite;
   transition: background .25s ease, border-color .25s ease, color .25s ease, transform .25s ease, box-shadow .25s ease;
 }
