@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import About from './About.jsx';
 
 // HTML chrome over the lake: header (title + demo-data pill), the "Ask the
 // lake" box, and (3D fallback only) an HD/LO quality toggle. The per-section
@@ -34,9 +35,12 @@ export default function Overlay({ visible, answer, onAsk, showAsk = true, qualit
           <h1 className="ov-title">The WPS Data Lake</h1>
           <div className="ov-tagline">one source of truth&nbsp;&nbsp;·&nbsp;&nbsp;four functions&nbsp;&nbsp;·&nbsp;&nbsp;pending discovery</div>
         </div>
-        <div className="ov-pill">
-          <span className="dot" />
-          <span className="lbl">Demo data · illustrative — pending discovery</span>
+        <div className="ov-head-right">
+          <About />
+          <div className="ov-pill">
+            <span className="dot" />
+            <span className="lbl">Demo data · illustrative — pending discovery</span>
+          </div>
         </div>
       </header>
 

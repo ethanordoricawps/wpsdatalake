@@ -121,12 +121,25 @@ canvas {
   color: var(--muted); font-weight: 500; white-space: nowrap;
   text-shadow: 0 2px 18px rgba(2,10,5,.85);
 }
+.ov-head-right { flex: none; display: flex; align-items: center; gap: 12px; pointer-events: none; }
+.about-btn {
+  pointer-events: auto; cursor: pointer; flex: none;
+  padding: 8px 16px; border-radius: 999px; font-family: 'Inter', sans-serif;
+  font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink);
+  border: 1px solid rgba(160,200,140,.32); background: rgba(10,26,16,.55); backdrop-filter: blur(4px);
+  transition: background .2s ease, border-color .2s ease, color .2s ease;
+}
+.about-btn:hover { background: rgba(120,170,90,.2); border-color: rgba(175,215,150,.55); color: #EAF6D8; }
 .ov-pill {
   flex: none; display: flex; align-items: center; gap: 9px;
   padding: 8px 15px; border: 1px solid rgba(160,200,140,.3); border-radius: 999px;
   background: rgba(10,26,16,.55); backdrop-filter: blur(4px);
   animation: wps-pillpulse 4s ease-in-out infinite;
 }
+.about-card { border-top-color: #A7DD8C; }
+.about-list { margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.about-list li { position: relative; padding-left: 16px; font-size: 13px; line-height: 1.5; color: #D6DCC9; }
+.about-list li::before { content: ''; position: absolute; left: 0; top: 8px; width: 6px; height: 6px; border-radius: 50%; background: #8FCB6E; }
 .ov-pill .dot {
   width: 7px; height: 7px; border-radius: 50%; background: #A7DD8C;
   box-shadow: 0 0 8px #A7DD8C; animation: wps-dotpulse 2.6s ease-in-out infinite;
