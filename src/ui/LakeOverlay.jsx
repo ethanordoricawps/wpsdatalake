@@ -17,7 +17,6 @@ export default function LakeOverlay({ active, animate = true, onHover, onQuery, 
   const canvasRef = useRef();
   const imgs = useRef({});
   const meta = useRef(null);
-  const motes = useRef([]);
   const [loaded, setLoaded] = useState(false);
 
   // load the baked glow layers + zone metadata once
@@ -36,8 +35,6 @@ export default function LakeOverlay({ active, animate = true, onHover, onQuery, 
     fetch('/img/lake_zones.json').then((r) => r.json()).then((m) => {
       if (!alive) return;
       meta.current = m;
-      // seed inflow motes along the arm
-      motes.current = Array.from({ length: 9 }, (_, i) => ({ p: (i / 9 + Math.random() * 0.2) % 1, speed: 0.07 + Math.random() * 0.05 }));
       onReady?.(m.centroids);
       done();
     }).catch(done);
@@ -51,7 +48,12 @@ export default function LakeOverlay({ active, animate = true, onHover, onQuery, 
     let raf, t0 = performance.now();
     const hover = {}; ALL.forEach((k) => (hover[k] = 0));
 
-    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+    const off = document.createElement('canvas'); // offscreen for section-clipped ripples
+    const offCtx = off.getContext('2d');
+    const resize = () => {
+      canvas.width = off.width = window.innerWidth;
+      canvas.height = off.height = window.innerHeight;
+    };
     resize();
     window.addEventListener('resize', resize);
 
@@ -87,33 +89,38 @@ export default function LakeOverlay({ active, animate = true, onHover, onQuery, 
         });
         ctx.globalAlpha = 1;
 
-        // ---- inflow motes drift from the arm tip into the lake ----
-        const m = meta.current;
-        if (m && m.inflow && m.inflow.target) {
-          const [tx, ty] = toPx(m.inflow.tip[0], m.inflow.tip[1], c);
-          const [bx, by] = toPx(m.inflow.target[0], m.inflow.target[1], c);
-          motes.current.forEach((mo) => {
-            if (animate) { mo.p += mo.speed * 0.016; if (mo.p >= 1) mo.p -= 1; }
-            const e = mo.p;
-            const x = tx + (bx - tx) * e, y = ty + (by - ty) * e;
-            const fade = Math.sin(mo.p * Math.PI);
-            ctx.fillStyle = `rgba(225,240,220,${0.55 * fade})`;
-            ctx.beginPath(); ctx.arc(x, y, 2.6, 0, Math.PI * 2); ctx.fill();
-          });
-        }
-
-        // ---- ripples at section centroids ----
+        // ---- ripples, clipped to their section so they bend around its edges ----
         const rs = lake.ripples, cen = meta.current && meta.current.centroids;
+        // advance + cull, group active ripples by zone
+        const byZone = {};
         for (let i = rs.length - 1; i >= 0; i--) {
           const r = rs[i];
-          if (animate) r.t += 0.012;
+          if (animate) r.t += 0.011;
           if (r.t >= 1) { rs.splice(i, 1); continue; }
-          const ctr = cen && cen[r.key]; if (!ctr) continue;
+          (byZone[r.key] || (byZone[r.key] = [])).push(r);
+        }
+        const maxR = Math.max(c.w, c.h) * 0.55; // generous; the mask shapes it
+        for (const k in byZone) {
+          const ctr = cen && cen[k]; const fl = imgs.current[k + '_fill'];
+          if (!ctr || !fl || !fl.width) continue;
           const [px, py] = toPx(ctr[0], ctr[1], c);
-          const rad = r.t * Math.min(c.w, c.h) * 0.22;
-          ctx.beginPath(); ctx.arc(px, py, rad, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(225,238,205,${(1 - r.t) * 0.5})`;
-          ctx.lineWidth = 1.6 * (1 - r.t) + 0.5; ctx.stroke();
+          offCtx.clearRect(0, 0, vw, vh);
+          offCtx.globalCompositeOperation = 'source-over';
+          for (const r of byZone[k]) {
+            const rad = r.t * maxR;
+            offCtx.beginPath();
+            offCtx.arc(px, py, rad, 0, Math.PI * 2);
+            offCtx.strokeStyle = `rgba(225,238,205,${(1 - r.t) * 0.65})`;
+            offCtx.lineWidth = 3 * (1 - r.t) + 1;
+            offCtx.stroke();
+          }
+          // keep only the part inside the section (soft fill edge = it bends/fades at the border)
+          offCtx.globalCompositeOperation = 'destination-in';
+          offCtx.drawImage(fl, c.ox, c.oy, c.w, c.h);
+          offCtx.globalCompositeOperation = 'source-over';
+          // composite the masked ripple onto the scene (additive glint)
+          ctx.globalCompositeOperation = 'lighter';
+          ctx.drawImage(off, 0, 0);
         }
         ctx.globalCompositeOperation = 'source-over';
       }
