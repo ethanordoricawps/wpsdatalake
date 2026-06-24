@@ -30,6 +30,7 @@ export const AGENTS = [
     creature: 'Kingfisher',
     zone: 'fund',
     sources: { fund: 0.55, part: 0.25, field: 0.2 },
+    nudge: [-0.06, -0.01], // shift left so it doesn't sit on the Fundraising label
     status: 'Pattern',
     territory: 'Fundraising & Development (grants ledger, donor records); reads Field & Partnership programs to match grants',
     trigger: 'A new grant is posted, or on a weekly cadence',

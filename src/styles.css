@@ -101,7 +101,7 @@ canvas {
 
 /* honor reduced motion: no pulses, no fade transitions */
 @media (prefers-reduced-motion: reduce) {
-  .ov-pill, .ov-pill .dot, .gate .enter { animation: none !important; }
+  .ov-pill, .ov-pill .dot, .gate .enter, .charter-backdrop, .charter { animation: none !important; }
   .overlay-fade { transition: none !important; }
 }
 
@@ -213,37 +213,45 @@ canvas {
    straight into it); the label hangs absolutely below and doesn't shift it */
 .agent-dot {
   position: absolute; transform: translate(-50%, -50%);
-  padding: 0; background: none; border: none; cursor: pointer; pointer-events: auto; color: var(--ink);
+  padding: 11px; /* invisible hit area larger than the dot so it's easy to click */
+  background: none; border: none; cursor: pointer; pointer-events: auto; color: var(--ink);
 }
 .ad-dot {
-  display: block; width: 13px; height: 13px; border-radius: 50%;
-  outline: 1px solid rgba(255,255,255,.25); outline-offset: 2px;
+  display: block; width: 15px; height: 15px; border-radius: 50%;
+  outline: 1.5px solid rgba(255,255,255,.5); outline-offset: 2px;
   transition: transform .2s ease;
 }
 .agent-dot:hover .ad-dot { transform: scale(1.18); }
 .agent-dot.on .ad-dot { animation: wps-dotpulse 2s ease-in-out infinite; }
 .agent-dot.edge .ad-dot { box-shadow: 0 0 0 3px rgba(255,255,255,.15), 0 0 14px currentColor; }
 .ad-label {
-  position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-  margin-top: 8px; text-align: center; white-space: nowrap;
+  position: absolute; top: calc(50% + 16px); left: 50%; transform: translateX(-50%);
+  text-align: center; white-space: nowrap; pointer-events: none;
   text-shadow: 0 1px 3px rgba(2,10,5,1), 0 1px 10px rgba(2,10,5,1), 0 0 20px rgba(2,10,5,.85);
-  opacity: .9; transition: opacity .2s ease;
+  opacity: 0; transition: opacity .2s ease; /* name + subtext only appear on hover/select */
 }
 .agent-dot.on .ad-label, .agent-dot:hover .ad-label { opacity: 1; }
 .ad-name { display: block; font-size: 12px; font-weight: 600; letter-spacing: .06em; color: #F1F4E9; }
 .ad-creature { display: block; font-size: 9.5px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: #D7E0CC; margin-top: 1px; }
 
-.charter {
-  position: fixed; width: 330px; max-width: 42vw; z-index: 6; pointer-events: auto;
-  padding: 16px 20px 18px; border-radius: 16px;
-  border: 1px solid rgba(160,200,140,.26); background: rgba(9,24,15,.78);
-  backdrop-filter: blur(8px); box-shadow: 0 10px 40px rgba(2,10,5,.55); color: var(--ink);
+.charter-backdrop {
+  position: fixed; inset: 0; z-index: 7; pointer-events: auto;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(4,12,8,.42); backdrop-filter: blur(1px);
+  animation: wps-fadein .16s ease both;
 }
+.charter {
+  position: relative; width: 380px; max-width: 88vw; max-height: 86vh; overflow-y: auto;
+  padding: 18px 22px 20px; border-radius: 16px; color: var(--ink);
+  border: 1px solid rgba(160,200,140,.3); background: rgba(9,24,15,.92);
+  box-shadow: 0 20px 60px rgba(2,10,5,.6);
+  animation: wps-cardin .18s ease both;
+}
+@keyframes wps-fadein { from { opacity: 0; } to { opacity: 1; } }
+@keyframes wps-cardin { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: none; } }
 .charter-head {
   display: flex; align-items: center; gap: 11px; margin-bottom: 14px;
-  cursor: grab; touch-action: none; user-select: none;
 }
-.charter-head:active { cursor: grabbing; }
 .charter-head-text { flex: 1; min-width: 0; }
 .charter-close {
   flex: none; width: 24px; height: 24px; border-radius: 8px; cursor: pointer;

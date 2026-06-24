@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AGENTS, CHARTER_FIELDS } from '../data/agents.js';
-import { ZONES, rgbCss } from '../data/zones.js';
+import { ZONES, rgbCss, rgbCssLight } from '../data/zones.js';
 
 function cover(vw, vh) {
   const arV = 16 / 9;
@@ -19,7 +19,9 @@ function vennPos(a, centroids) {
     const ctr = centroids[k]; if (!ctr) continue;
     const wt = a.sources[k]; x += ctr[0] * wt; y += ctr[1] * wt; w += wt;
   }
-  return w ? [x / w, y / w] : null;
+  if (!w) return null;
+  // optional manual nudge (normalized frame units) to clear an overlap
+  return [x / w + (a.nudge ? a.nudge[0] : 0), y / w + (a.nudge ? a.nudge[1] : 0)];
 }
 const primaryZone = (a) => {
   const ks = Object.keys(a.sources);
@@ -102,7 +104,9 @@ export default function AgentsLayer({ active, centroids, selectedId, onSelect, a
       {AGENTS.map((a) => {
         const ap = vennPos(a, centroids); if (!ap) return null;
         const [px, py] = toPx(ap[0], ap[1], c);
-        const col = rgbCss(ZONES[primaryZone(a)].color);
+        // lift the zone tint well toward white so the dot stays legible on the
+        // water — it keeps a hint of its primary color for identity
+        const col = rgbCssLight(ZONES[primaryZone(a)].color, 0.58);
         const on = a.id === selectedId;
         return (
           <button
@@ -111,7 +115,7 @@ export default function AgentsLayer({ active, centroids, selectedId, onSelect, a
             style={{ left: px, top: py, color: col }}
             onClick={() => onSelect(on ? null : a.id)}
           >
-            <span className="ad-dot" style={{ background: col, boxShadow: `0 0 14px ${col}` }} />
+            <span className="ad-dot" style={{ background: col, boxShadow: `0 0 0 1.5px rgba(2,10,5,.55), 0 0 18px ${col}` }} />
             <span className="ad-label">
               <span className="ad-name">{a.name}</span>
               <span className="ad-creature">{a.creature}{a.edge ? ' · edge case' : ''}</span>
@@ -124,51 +128,36 @@ export default function AgentsLayer({ active, centroids, selectedId, onSelect, a
   );
 }
 
-// The charter: draggable by its header, closable with ×, so it never traps a
-// click point on the lake.
+// The charter: a centered modal that fades in over a dimmed screen. Closes on
+// its × or by clicking anywhere outside the card.
 function CharterCard({ agent, onClose }) {
-  const [pos, setPos] = useState({ x: 36, y: 104 });
-
-  const startDrag = (e) => {
-    e.preventDefault();
-    const sx = e.clientX, sy = e.clientY, ox = pos.x, oy = pos.y;
-    const move = (ev) => {
-      const x = Math.max(8, Math.min(window.innerWidth - 60, ox + ev.clientX - sx));
-      const y = Math.max(8, Math.min(window.innerHeight - 60, oy + ev.clientY - sy));
-      setPos({ x, y });
-    };
-    const up = () => {
-      window.removeEventListener('pointermove', move);
-      window.removeEventListener('pointerup', up);
-    };
-    window.addEventListener('pointermove', move);
-    window.addEventListener('pointerup', up);
-  };
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
 
   return (
-    <div className="charter" style={{ left: pos.x, top: pos.y }}>
-      <div className="charter-head" onPointerDown={startDrag}>
-        <span className="charter-dot" style={{ background: rgbCss(ZONES[primaryZone(agent)].color) }} />
-        <div className="charter-head-text">
-          <div className="charter-name">{agent.name}</div>
-          <div className="charter-sub">{agent.creature} · {agent.status}</div>
-        </div>
-        <button
-          className="charter-close"
-          onClick={onClose}
-          onPointerDown={(e) => e.stopPropagation()}
-          aria-label="Close charter"
-        >×</button>
-      </div>
-      <dl className="charter-fields">
-        {CHARTER_FIELDS.map(([key, label]) => (
-          <div className="charter-row" key={key}>
-            <dt>{label}</dt>
-            <dd>{agent[key]}</dd>
+    <div className="charter-backdrop" onClick={onClose}>
+      <div className="charter" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div className="charter-head">
+          <span className="charter-dot" style={{ background: rgbCss(ZONES[primaryZone(agent)].color) }} />
+          <div className="charter-head-text">
+            <div className="charter-name">{agent.name}</div>
+            <div className="charter-sub">{agent.creature} · {agent.status}</div>
           </div>
-        ))}
-      </dl>
-      <div className="charter-foot">Illustrative — pending discovery</div>
+          <button className="charter-close" onClick={onClose} aria-label="Close charter">×</button>
+        </div>
+        <dl className="charter-fields">
+          {CHARTER_FIELDS.map(([key, label]) => (
+            <div className="charter-row" key={key}>
+              <dt>{label}</dt>
+              <dd>{agent[key]}</dd>
+            </div>
+          ))}
+        </dl>
+        <div className="charter-foot">Illustrative — pending discovery</div>
+      </div>
     </div>
   );
 }
