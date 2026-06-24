@@ -5,7 +5,7 @@ import Overlay from './ui/Overlay.jsx';
 import EnterGate from './ui/EnterGate.jsx';
 import { intro, resetIntro } from './intro.js';
 import { addRipple, lake } from './lake-state.js';
-import { startAmbient, setMuted } from './audio.js';
+import { enter as startAmbient, setMuted } from './audio.js';
 import { START_COUNTS, ZONES, ZONE_KEYS, askLake } from './data/zones.js';
 import { zoneAt } from './data/lake.js';
 

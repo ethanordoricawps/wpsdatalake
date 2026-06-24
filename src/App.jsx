@@ -5,6 +5,7 @@ import Overlay from './ui/Overlay.jsx';
 import EnterGate from './ui/EnterGate.jsx';
 import App3D from './App3D.jsx';
 import { addRipple, lake } from './lake-state.js';
+import { enter as audioEnter, idle as audioIdle, setMuted } from './audio.js';
 import { START_COUNTS, ZONES, ZONE_KEYS, askLake } from './data/zones.js';
 
 const PARAMS = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
@@ -67,7 +68,17 @@ export default function App() {
   const onEnter = useCallback(() => {
     setEntered(true);
     setPhase('swoop');
-  }, []);
+    if (soundOn) {
+      audioEnter(); // loud rainforest + swoop whoosh
+      // ease toward the quiet idle in the back half of the swoop
+      setTimeout(() => audioIdle(2.4), 3500);
+    }
+  }, [soundOn]);
+
+  // safety: ensure we're at the quiet idle once the still is showing
+  useEffect(() => {
+    if (aerial && soundOn) audioIdle(2.0);
+  }, [aerial, soundOn]);
 
   return (
     <>
@@ -87,7 +98,7 @@ export default function App() {
         onHover={onHover}
         onAsk={onAsk}
         soundOn={soundOn}
-        onToggleSound={() => setSoundOn((s) => !s)}
+        onToggleSound={() => setSoundOn((s) => { setMuted(s); return !s; })}
       />
 
       {!entered && <EnterGate onEnter={onEnter} />}

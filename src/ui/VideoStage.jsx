@@ -23,7 +23,7 @@ export default function VideoStage({ phase, soundOn, onSwoopEnd, reduced }) {
     } else if (phase === 'swoop') {
       if (!swoop) return;
       cutDone.current = false;
-      swoop.muted = !soundOn;
+      swoop.muted = true; // audio comes from the designed WebAudio bed
       swoop.currentTime = 0;
       swoop.play?.().catch(() => {});
       // freeze on the final frame and hand off to the held still
