@@ -83,6 +83,21 @@ canvas {
 @keyframes wps-pillpulse { 0%, 100% { opacity: .85; } 50% { opacity: 1; } }
 @keyframes wps-dotpulse  { 0%, 100% { opacity: .4; transform: scale(.85); } 50% { opacity: 1; transform: scale(1.15); } }
 
+/* keyboard focus affordances */
+.ov-ask input:focus-visible,
+.ov-ask button:focus-visible,
+.ov-quality:focus-visible {
+  outline: 2px solid rgba(167,221,140,.75);
+  outline-offset: 2px;
+}
+.gate:focus-visible { outline: none; }
+.gate:focus-visible .enter {
+  background: rgba(140,190,105,.28);
+  border-color: rgba(180,220,150,.9);
+  color: #EAF6D8;
+  box-shadow: 0 0 0 2px rgba(167,221,140,.6), 0 6px 26px rgba(120,170,90,.28);
+}
+
 /* honor reduced motion: no pulses, no fade transitions */
 @media (prefers-reduced-motion: reduce) {
   .ov-pill, .ov-pill .dot, .gate .enter { animation: none !important; }
