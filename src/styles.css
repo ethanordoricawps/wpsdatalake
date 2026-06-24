@@ -224,9 +224,13 @@ canvas {
   background: none; border: none; cursor: pointer; pointer-events: auto; color: var(--ink);
 }
 .ad-dot {
-  display: block; width: 10px; height: 10px; border-radius: 50%;
-  outline: 1px solid rgba(255,255,255,.3); outline-offset: 2px;
+  display: block; width: 10px; height: 10px; border-radius: 50%; position: relative;
   transition: transform .2s ease;
+}
+/* specular highlight -> reads as a small glossy bead resting on the water */
+.ad-dot::after {
+  content: ''; position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, rgba(255,255,255,.7), rgba(255,255,255,0) 58%);
 }
 .agent-dot:hover .ad-dot { transform: scale(1.18); }
 .agent-dot.on .ad-dot { animation: wps-dotpulse 2s ease-in-out infinite; }

@@ -106,7 +106,9 @@ export default function AgentsLayer({ active, centroids, selectedId, onSelect, a
         const [px, py] = toPx(ap[0], ap[1], c);
         // lift the zone tint well toward white so the dot stays legible on the
         // water — it keeps a hint of its primary color for identity
-        const col = rgbCssLight(mixZoneColors(a.sources), 0.58); // dot = blend of its sources
+        const base = mixZoneColors(a.sources);          // blended source color
+        const col = rgbCssLight(base, 0.58);            // dot fill
+        const glow = rgbCssLight(base, 0.5, 0.5);       // soft halo that melts into the water
         const on = a.id === selectedId;
         return (
           <button
@@ -117,7 +119,7 @@ export default function AgentsLayer({ active, centroids, selectedId, onSelect, a
             onPointerEnter={() => setHoverId(a.id)}
             onPointerLeave={() => setHoverId((h) => (h === a.id ? null : h))}
           >
-            <span className="ad-dot" style={{ background: col, boxShadow: `0 0 0 1px rgba(2,10,5,.4), 0 0 13px ${col}` }} />
+            <span className="ad-dot" style={{ background: col, boxShadow: `0 0 0 1px rgba(2,10,5,.35), 0 1px 2px rgba(2,10,5,.45), 0 0 10px ${glow}` }} />
             <span className="ad-label">
               <span className="ad-name">{a.name}</span>
               <span className="ad-creature">{a.creature}{a.edge ? ' · edge case' : ''}</span>
