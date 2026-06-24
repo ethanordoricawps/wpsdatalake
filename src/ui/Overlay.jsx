@@ -1,11 +1,26 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // HTML chrome over the lake: header (title + demo-data pill), the "Ask the
 // lake" box, and (3D fallback only) an HD/LO quality toggle. The per-section
 // labels live on the lake itself (SectionLabels); legibility scrims sit behind.
 export default function Overlay({ visible, answer, onAsk, showAsk = true, quality, onToggleQuality }) {
   const inputRef = useRef();
-  const submit = () => onAsk(inputRef.current ? inputRef.current.value : '');
+  const submit = () => {
+    if (!inputRef.current) return;
+    onAsk(inputRef.current.value);
+    inputRef.current.value = ''; // clear the bar after sending
+    inputRef.current.blur();     // deselect so it's no longer the active field
+  };
+
+  // the answer/chips float above the (static) bar: fade in quickly, hold, then
+  // fade out a touch slower (durations live in CSS, per show/hide state)
+  const [showAnswer, setShowAnswer] = useState(false);
+  useEffect(() => {
+    if (!answer.text) { setShowAnswer(false); return; }
+    setShowAnswer(true);
+    const id = setTimeout(() => setShowAnswer(false), 5000);
+    return () => clearTimeout(id);
+  }, [answer]);
 
   return (
     <div className={`overlay overlay-fade ${visible ? 'show' : ''}`}>
@@ -25,8 +40,21 @@ export default function Overlay({ visible, answer, onAsk, showAsk = true, qualit
         </div>
       </header>
 
-      {/* ask the lake */}
+      {/* ask the lake — the bar stays put; the answer floats above it */}
       <div className="ov-ask" style={{ display: showAsk ? 'flex' : 'none' }}>
+        <div className={`ov-answer ${showAnswer ? 'show' : ''}`} role="status" aria-live="polite">
+          <div className="answer" style={{ color: answer.ok ? '#A7DD8C' : '#BAC4AE' }}>
+            {answer.text}
+          </div>
+          {answer.sources && answer.sources.length > 0 && (
+            <div className="ov-sources">
+              <span className="src-lead">Sources</span>
+              {answer.sources.map((s, i) => (
+                <span key={i} className="src-chip">{s}</span>
+              ))}
+            </div>
+          )}
+        </div>
         <div className="row">
           <label className="lead" htmlFor="ask-input">Ask the lake</label>
           <input
@@ -38,17 +66,6 @@ export default function Overlay({ visible, answer, onAsk, showAsk = true, qualit
           />
           <button onClick={submit} aria-label="Ask the lake">↵</button>
         </div>
-        <div className="answer" role="status" aria-live="polite" style={{ color: answer.ok ? '#A7DD8C' : '#BAC4AE' }}>
-          {answer.text}
-        </div>
-        {answer.sources && answer.sources.length > 0 && (
-          <div className="ov-sources">
-            <span className="src-lead">Sources</span>
-            {answer.sources.map((s, i) => (
-              <span key={i} className="src-chip">{s}</span>
-            ))}
-          </div>
-        )}
       </div>
 
       {onToggleQuality && (
