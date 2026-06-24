@@ -1,26 +1,22 @@
 import { useEffect, useRef } from 'react';
 
-// Three stacked videos crossfaded by phase:
-//   start  -> 1.mp4 ground-level loop (Enter button lives here)
-//   swoop  -> 4.mp4 plays once (with audio), ends on the aerial lake
-//   aerial -> 2.mp4 aerial lake loop (interactive layer sits on top)
-// Posters back each video so a frame shows even if decoding isn't available.
-// The swoop overshoots the aerial-loop's start by ~0.38s. Cutting here (tuned
-// by SSIM-matching swoop frames against aerial.mp4's first frame) lands the
-// swoop exactly where the idle loop begins — no backward jump at the handoff.
-const SWOOP_CUT = 5.64;
+// Two videos + a held still:
+//   start  -> start.mp4 ground-level loop (Enter button lives here)
+//   swoop  -> swoop.mp4 plays once (with audio), then we FREEZE on its final
+//             frame (lake_still.jpg) as the interactive background — no aerial
+//             loop (the loop's motion didn't hold up; a clean still does).
+// Pausing the swoop at SWOOP_CUT and crossfading to the matching still keeps
+// the handoff seamless (same frame).
+const SWOOP_CUT = 5.95;
 
 export default function VideoStage({ phase, soundOn, onSwoopEnd, reduced }) {
   const startRef = useRef();
   const swoopRef = useRef();
-  const aerialRef = useRef();
   const cutDone = useRef(false);
 
-  // drive playback off the phase
   useEffect(() => {
     const start = startRef.current;
     const swoop = swoopRef.current;
-    const aerial = aerialRef.current;
 
     if (phase === 'start') {
       start?.play?.().catch(() => {});
@@ -30,8 +26,7 @@ export default function VideoStage({ phase, soundOn, onSwoopEnd, reduced }) {
       swoop.muted = !soundOn;
       swoop.currentTime = 0;
       swoop.play?.().catch(() => {});
-      // hand off a few frames early, holding the matching frame, so the
-      // crossfade to the aerial loop blends two aligned poses
+      // freeze on the final frame and hand off to the held still
       const onTime = () => {
         if (cutDone.current || swoop.currentTime < SWOOP_CUT) return;
         cutDone.current = true;
@@ -40,13 +35,8 @@ export default function VideoStage({ phase, soundOn, onSwoopEnd, reduced }) {
       };
       swoop.addEventListener('timeupdate', onTime);
       return () => swoop.removeEventListener('timeupdate', onTime);
-    } else if (phase === 'aerial') {
-      if (!aerial) return;
-      aerial.currentTime = 0; // start on the frame the swoop paused at
-      if (reduced) aerial.pause?.();
-      else aerial.play?.().catch(() => {});
     }
-  }, [phase, soundOn, reduced, onSwoopEnd]);
+  }, [phase, soundOn, onSwoopEnd]);
 
   const vis = (p) => ({ opacity: phase === p ? 1 : 0 });
 
@@ -68,21 +58,17 @@ export default function VideoStage({ phase, soundOn, onSwoopEnd, reduced }) {
         className="stage-video"
         style={vis('swoop')}
         src="/video/swoop.mp4"
-        poster="/img/aerial_poster.jpg"
+        poster="/img/lake_still.jpg"
         playsInline
         preload="auto"
         onEnded={onSwoopEnd}
       />
-      <video
-        ref={aerialRef}
+      {/* held still: the swoop's final frame — the interactive background */}
+      <img
         className="stage-video"
-        style={vis('aerial')}
-        src="/video/aerial.mp4"
-        poster="/img/aerial_poster.jpg"
-        loop
-        muted
-        playsInline
-        preload="auto"
+        style={{ opacity: phase === 'aerial' ? 1 : 0 }}
+        src="/img/lake_still.jpg"
+        alt=""
       />
     </div>
   );

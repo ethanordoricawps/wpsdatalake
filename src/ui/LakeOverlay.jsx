@@ -4,7 +4,7 @@ import { lake } from '../lake-state.js';
 
 // The lake's footprint inside the 16:9 video frame (normalized 0..1), fitted to
 // aerial.mp4. Tune these four numbers to sit the data layer on the real water.
-export const LAKE_SCREEN = { cx: 0.5, cy: 0.435, rx: 0.45, ry: 0.30 };
+export const LAKE_SCREEN = { cx: 0.5, cy: 0.46, rx: 0.45, ry: 0.32 };
 
 // Per-zone glow placement in the lake's 2×2 quadrants (matches the 2D layout:
 // eng top-left, field top-right, part bottom-left, fund bottom-right) + a
