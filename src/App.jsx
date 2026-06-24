@@ -22,10 +22,9 @@ export default function App() {
   const [phase, setPhase] = useState(reduced ? 'aerial' : 'start');
   const [entered, setEntered] = useState(reduced);
   const [counts, setCounts] = useState(START_COUNTS);
-  const [, setHovered] = useState(null);
   const [answer, setAnswer] = useState({ text: '', ok: true });
-  const [soundOn, setSoundOn] = useState(false); // audio cut for now
   const [centroids, setCentroids] = useState(null);
+  const soundOn = false; // audio cut for now (videos stay muted)
 
   const aerial = phase === 'aerial';
 
@@ -46,8 +45,7 @@ export default function App() {
   }, [reduced, aerial]);
 
   const onHover = useCallback((z) => {
-    lake.hovered = z;
-    setHovered(z);
+    lake.hovered = z; // read by LakeOverlay's draw loop (no React re-render needed)
     document.body.style.cursor = z ? 'pointer' : 'default';
   }, []);
 
@@ -85,15 +83,7 @@ export default function App() {
 
       <SectionLabels centroids={centroids} counts={counts} visible={aerial} />
 
-      <Overlay
-        visible={aerial}
-        counts={counts}
-        answer={answer}
-        onHover={onHover}
-        onAsk={onAsk}
-        soundOn={soundOn}
-        onToggleSound={() => setSoundOn((s) => !s)}
-      />
+      <Overlay visible={aerial} answer={answer} onAsk={onAsk} />
 
       {!entered && <EnterGate onEnter={onEnter} />}
     </>
