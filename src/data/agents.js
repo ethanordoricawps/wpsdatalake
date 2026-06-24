@@ -2,6 +2,11 @@
 // docs/LIVING_DATA_LAKE_CONCEPT.md). One edge-case agent is proven first
 // (Ranger Dispatch); the rest show the pattern that scales (roadmap Step 5).
 // All illustrative — pending discovery.
+//
+// `sources` = which function basins the agent draws from, weighted by how much
+// of its data comes from each. The marker floats at the weighted centroid of
+// those basins (a Venn position): an agent reading mostly one section sits deep
+// in it; a cross-function agent lives between its sources, nearest the heaviest.
 
 export const AGENTS = [
   {
@@ -9,6 +14,7 @@ export const AGENTS = [
     name: 'Ranger Dispatch',
     creature: 'Heron',
     zone: 'field',
+    sources: { field: 0.6, part: 0.4 },
     edge: true,
     status: 'Edge case · in build',
     territory: 'Field Ops & Deployments (read-only); may consult Partnerships for jurisdiction',
@@ -23,8 +29,9 @@ export const AGENTS = [
     name: 'Grant Scout',
     creature: 'Kingfisher',
     zone: 'fund',
+    sources: { fund: 0.55, part: 0.25, field: 0.2 },
     status: 'Pattern',
-    territory: 'Fundraising & Development (grants ledger, donor records)',
+    territory: 'Fundraising & Development (grants ledger, donor records); reads Field & Partnership programs to match grants',
     trigger: 'A new grant is posted, or on a weekly cadence',
     instinct: 'Match open grants to active programs and draft a tailored brief',
     catch: 'A proposal brief grounded in program data, with cited sources',
@@ -36,8 +43,9 @@ export const AGENTS = [
     name: 'Partner Sync',
     creature: 'Otter',
     zone: 'part',
+    sources: { part: 0.6, fund: 0.4 },
     status: 'Pattern',
-    territory: 'Partnerships (partner records, shared program data)',
+    territory: 'Partnerships (partner records, shared program data); aligns with Fundraising on co-funded programs',
     trigger: 'An MOU or agreement changes',
     instinct: 'Surface obligations and upcoming renewal dates',
     catch: 'An obligation digest with cited sources',
@@ -49,8 +57,9 @@ export const AGENTS = [
     name: 'Repo Sentinel',
     creature: 'Dragonfly',
     zone: 'eng',
+    sources: { eng: 0.75, field: 0.25 },
     status: 'Pattern',
-    territory: 'Engineering (Azure databases, GitHub repositories)',
+    territory: 'Engineering (Azure databases, GitHub repositories); cross-checks Field Ops deployments',
     trigger: 'A new commit or deployment',
     instinct: 'Flag drift between what shipped and what the docs say',
     catch: 'A drift report with cited sources',
