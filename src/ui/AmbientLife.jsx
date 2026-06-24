@@ -31,35 +31,52 @@ export default function AmbientLife({ active, animate = true }) {
       a: 0.05 + Math.random() * 0.05,
     }));
 
-    // birds
+    // birds fly along a depth axis: from a far vanishing point up near the
+    // horizon toward the viewer (or the reverse), growing + fading in as they
+    // approach. Reads as flying into/out of the distance, matching the flap.
     const birds = [];
+    const smooth = (x) => { const c = Math.max(0, Math.min(1, x)); return c * c * (3 - 2 * c); };
     const spawnFlock = (single) => {
-      const dir = Math.random() < 0.5 ? 1 : -1;
-      const n = single ? 1 : 4 + (Math.random() * 7 | 0);
-      const baseY = 0.02 + Math.random() * 0.06;       // the bright sky strip up top
-      const baseX = dir > 0 ? -0.08 : 1.08;
-      const speed = 0.085 + Math.random() * 0.05;
-      const size = 9 + Math.random() * 7;
+      const incoming = Math.random() < 0.72;            // mostly flying toward us
+      const n = single ? 1 : 3 + (Math.random() * 4 | 0);
+      const vpx = 0.4 + Math.random() * 0.2;            // far point, up in the sky strip
+      const vpy = 0.05 + Math.random() * 0.05;
+      const side = Math.random() < 0.5 ? -1 : 1;
+      // "near" = closest to the viewer. Incoming birds keep growing and exit
+      // off the frame edge; outgoing birds start just inside it, then recede.
+      const nearx = incoming
+        ? 0.5 + side * (0.55 + Math.random() * 0.35)    // past the left/right edge
+        : 0.5 + side * (0.5 + Math.random() * 0.12);    // spawn at the frame edge
+      const neary = incoming
+        ? 0.58 + Math.random() * 0.4                    // low, sweeping off the bottom
+        : 0.4 + Math.random() * 0.35;
+      const dur = incoming ? 7 + Math.random() * 4 : 9 + Math.random() * 5;
+      const sizeMax = incoming ? 16 + Math.random() * 10 : 12 + Math.random() * 6;
       for (let i = 0; i < n; i++) {
         birds.push({
-          x: baseX - dir * (i * 0.018) - dir * (i % 2) * 0.01,  // loose V
-          y: baseY + i * 0.012 * (i % 2 ? 1 : -1) + (single ? 0 : 0.004 * i),
-          dir, speed, size: size * (single ? 1.1 : 1), flap: Math.random() * Math.PI * 2,
+          vpx: vpx + (Math.random() - 0.5) * 0.05,
+          vpy: vpy + (Math.random() - 0.5) * 0.025,
+          nearx: nearx + (Math.random() - 0.5) * 0.07,
+          neary: neary + (Math.random() - 0.5) * 0.05,
+          incoming, dur,
+          age: -i * (single ? 0 : 0.55),                // stagger the flock
+          sizeMax: sizeMax * (single ? 1.05 : 1),
+          flap: Math.random() * Math.PI * 2,
           flapSpeed: 6 + Math.random() * 3,
         });
       }
     };
-    let nextFlock = 1.5, nextSingle = 4; // seconds; first flock soon so it's visible
+    let nextFlock = 2.5, nextSingle = 6; // seconds; first one soon so it's visible
 
-    const drawBird = (b, sx, sy, t) => {
+    const drawBird = (b, sx, sy, t, scale, alpha) => {
       const wing = Math.sin(t * b.flapSpeed + b.flap) * 0.5 + 0.5; // 0..1
-      const span = b.size, lift = b.size * (0.25 + wing * 0.5);
+      const span = scale, lift = scale * (0.28 + wing * 0.55);
       ctx.beginPath();
       ctx.moveTo(sx - span, sy + lift * 0.3);
       ctx.quadraticCurveTo(sx - span * 0.3, sy - lift, sx, sy);
       ctx.quadraticCurveTo(sx + span * 0.3, sy - lift, sx + span, sy + lift * 0.3);
-      ctx.strokeStyle = 'rgba(22,30,24,0.78)';
-      ctx.lineWidth = 1.8;
+      ctx.strokeStyle = `rgba(22,30,24,${alpha})`;
+      ctx.lineWidth = Math.max(0.7, scale * 0.16);
       ctx.lineCap = 'round';
       ctx.stroke();
     };
@@ -88,16 +105,29 @@ export default function AmbientLife({ active, animate = true }) {
       // ---- birds ----
       if (animate) {
         nextFlock -= dt; nextSingle -= dt;
-        if (nextFlock <= 0) { spawnFlock(false); nextFlock = 14 + Math.random() * 12; }
-        if (nextSingle <= 0) { spawnFlock(true); nextSingle = 7 + Math.random() * 8; }
+        if (nextFlock <= 0) { spawnFlock(false); nextFlock = 30 + Math.random() * 22; }
+        if (nextSingle <= 0) { spawnFlock(true); nextSingle = 18 + Math.random() * 16; }
       }
       for (let i = birds.length - 1; i >= 0; i--) {
         const b = birds[i];
-        if (animate) b.x += b.dir * b.speed * dt;
-        if (b.x < -0.15 || b.x > 1.15) { birds.splice(i, 1); continue; }
-        // gentle bob
-        const sy = c.oy + (b.y + Math.sin(t * 0.6 + b.flap) * 0.004) * c.h;
-        drawBird(b, c.ox + b.x * c.w, sy, t);
+        if (animate) b.age += dt;
+        if (b.age < 0) continue;             // staggered flock member, not airborne yet
+        const p = b.age / b.dur;             // 0..1 across its flight
+        if (p >= 1) { birds.splice(i, 1); continue; }
+        // depth: 0 far (tiny/faint) -> 1 near (large/solid)
+        const z = b.incoming ? smooth(p) : smooth(1 - p);
+        const nx = b.vpx + (b.nearx - b.vpx) * z;   // path runs vp<->near with depth
+        const ny = b.vpy + (b.neary - b.vpy) * z;
+        const bob = Math.sin(t * 0.6 + b.flap) * 0.004 * z;
+        const sx = c.ox + nx * c.w;
+        const sy = c.oy + (ny + bob) * c.h;
+        const scale = 1.6 + (b.sizeMax - 1.6) * z;
+        // incoming: fade in from the far speck, then stay solid as it flies off
+        // the edge. outgoing: full near the viewer, dissolve as it recedes.
+        const alpha = b.incoming
+          ? (0.12 + 0.72 * z) * smooth(p / 0.12)   // fade in from the far speck
+          : 0.84 * z;                              // full at the edge, recede to nothing
+        drawBird(b, sx, sy, t, scale, alpha);
       }
 
       raf = requestAnimationFrame(draw);
