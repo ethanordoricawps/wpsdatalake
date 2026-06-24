@@ -67,6 +67,66 @@ export const AGENTS = [
     guardrails: 'No write access; secrets/keys veiled',
     baseline: 'Issues caught before production',
   },
+  {
+    id: 'pipeline',
+    name: 'Pipeline Watch',
+    creature: 'Damselfly',
+    zone: 'eng',
+    sources: { eng: 1 },          // deep in Engineering
+    nudge: [-0.04, -0.05],        // sit toward the eng feed, off the label
+    status: 'Pattern',
+    territory: 'Engineering (CI/CD pipelines, build & deploy logs)',
+    trigger: 'A pipeline run fails or regresses on time/size',
+    instinct: 'Summarize the failure and its likely cause',
+    catch: 'A build-failure digest with cited logs',
+    guardrails: 'Read-only; secrets & keys veiled',
+    baseline: 'Mean time to diagnose vs. manual log triage',
+  },
+  {
+    id: 'sensor',
+    name: 'Sensor Sentinel',
+    creature: 'Osprey',
+    zone: 'field',
+    sources: { field: 1 },        // deep in Field Ops
+    nudge: [0.04, -0.05],
+    status: 'Pattern',
+    territory: 'Field Ops (camera & sensor telemetry)',
+    trigger: 'A device goes offline or its readings drift',
+    instinct: 'Flag the device and its last-known status',
+    catch: 'A device-health alert with cited telemetry',
+    guardrails: 'Exact coordinates veiled; read-only',
+    baseline: 'Coverage gaps caught before they widen',
+  },
+  {
+    id: 'impact',
+    name: 'Impact Reporter',
+    creature: 'Egret',
+    zone: 'part',
+    sources: { part: 1 },         // deep in Partnerships
+    nudge: [-0.04, 0.05],
+    status: 'Pattern',
+    territory: 'Partnerships (shared program outcomes)',
+    trigger: 'A program reporting period closes',
+    instinct: 'Compile outcomes against shared goals',
+    catch: 'An impact summary with cited program data',
+    guardrails: 'Partner-confidential terms honored; read-only',
+    baseline: 'Reporting turnaround; data completeness',
+  },
+  {
+    id: 'donor',
+    name: 'Donor Steward',
+    creature: 'Swan',
+    zone: 'fund',
+    sources: { fund: 1 },         // deep in Fundraising
+    nudge: [0.04, 0.05],
+    status: 'Pattern',
+    territory: 'Fundraising & Development (donor records & gift history)',
+    trigger: 'A major gift lands or a pledge lapses',
+    instinct: 'Draft a tailored stewardship note',
+    catch: 'A stewardship brief grounded in donor history, with cited sources',
+    guardrails: 'Donor PII veiled; a human approves anything sent',
+    baseline: 'Stewardship turnaround; donor retention',
+  },
 ];
 
 export const CHARTER_FIELDS = [

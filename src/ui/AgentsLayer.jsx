@@ -26,7 +26,12 @@ function vennPos(a, centroids) {
 
 export default function AgentsLayer({ active, centroids, selectedId, onSelect, animate = true }) {
   const [vp, setVp] = useState({ w: window.innerWidth, h: window.innerHeight });
+  const [hoverId, setHoverId] = useState(null);
   const canvasRef = useRef();
+  // the agent whose RAG flows are drawn: hovered one wins, else the selected one
+  // (when selected, the card modal covers the lake — so hover is what shows it)
+  const focusRef = useRef(null);
+  focusRef.current = hoverId || selectedId;
   useEffect(() => {
     const r = () => setVp({ w: window.innerWidth, h: window.innerHeight });
     window.addEventListener('resize', r);
@@ -48,7 +53,8 @@ export default function AgentsLayer({ active, centroids, selectedId, onSelect, a
       const t = animate ? (now - t0) / 1000 : 0;
       const vw = window.innerWidth, vh = window.innerHeight, c = cover(vw, vh);
       ctx.clearRect(0, 0, vw, vh);
-      const a = selectedId && AGENTS.find((x) => x.id === selectedId);
+      const fid = focusRef.current;
+      const a = fid && AGENTS.find((x) => x.id === fid);
       const ap = a && vennPos(a, centroids);
       if (a && ap) {
         const [ax, ay] = toPx(ap[0], ap[1], c);
@@ -58,19 +64,17 @@ export default function AgentsLayer({ active, centroids, selectedId, onSelect, a
           const [sx, sy] = toPx(ctr[0], ctr[1], c);
           const col = ZONES[k] ? ZONES[k].color : [180, 200, 180];
           const wt = a.sources[k];
-          // faint guide line basin -> agent
-          ctx.strokeStyle = rgbCss(col, 0.12);
-          ctx.lineWidth = 1;
-          ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ax, ay); ctx.stroke();
-          // slow-drifting motes; count + size scale with how much it draws here
+          // slow-drifting motes from the basin to the agent; count + size scale
+          // with how much it draws here. Brightened (lifted toward white) so the
+          // dimmer basins still read, but kept dimmer + smaller than the dots.
           const count = 3 + Math.round(wt * 9);
           for (let i = 0; i < count; i++) {
             const p = (t * 0.1 + i / count) % 1; // slow
             const e = p * p * (3 - 2 * p);
             const x = sx + (ax - sx) * e, y = sy + (ay - sy) * e;
             const fade = Math.sin(p * Math.PI);
-            ctx.fillStyle = rgbCss(col, (0.35 + 0.4 * wt) * fade);
-            ctx.beginPath(); ctx.arc(x, y, (1.6 + 1.6 * wt) * fade + 0.6, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = rgbCssLight(col, 0.42, (0.5 + 0.4 * wt) * fade);
+            ctx.beginPath(); ctx.arc(x, y, (1.9 + 1.7 * wt) * fade + 0.7, 0, Math.PI * 2); ctx.fill();
           }
         }
         // soft halo where the currents converge on the agent
@@ -88,7 +92,7 @@ export default function AgentsLayer({ active, centroids, selectedId, onSelect, a
     };
     raf = requestAnimationFrame(draw);
     return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
-  }, [active, centroids, selectedId, animate]);
+  }, [active, centroids, animate]);
 
   if (!active || !centroids) return null;
   const c = cover(vp.w, vp.h);
@@ -110,8 +114,10 @@ export default function AgentsLayer({ active, centroids, selectedId, onSelect, a
             className={`agent-dot ${on ? 'on' : ''} ${a.edge ? 'edge' : ''}`}
             style={{ left: px, top: py, color: col }}
             onClick={() => onSelect(on ? null : a.id)}
+            onPointerEnter={() => setHoverId(a.id)}
+            onPointerLeave={() => setHoverId((h) => (h === a.id ? null : h))}
           >
-            <span className="ad-dot" style={{ background: col, boxShadow: `0 0 0 1.5px rgba(2,10,5,.55), 0 0 18px ${col}` }} />
+            <span className="ad-dot" style={{ background: col, boxShadow: `0 0 0 1px rgba(2,10,5,.4), 0 0 13px ${col}` }} />
             <span className="ad-label">
               <span className="ad-name">{a.name}</span>
               <span className="ad-creature">{a.creature}{a.edge ? ' · edge case' : ''}</span>
