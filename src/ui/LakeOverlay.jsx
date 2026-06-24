@@ -26,12 +26,12 @@ export default function LakeOverlay({ active, animate = true, onHover, onQuery, 
     const names = ALL;
     let pending = names.length + 1;
     const done = () => { if (--pending === 0 && alive) setLoaded(true); };
+    pending += names.length; // also load the per-zone fill masks
     names.forEach((n) => {
-      const im = new Image();
-      im.onload = done;
-      im.onerror = done;
-      im.src = `/img/zone_${n}.png`;
+      const im = new Image(); im.onload = done; im.onerror = done; im.src = `/img/zone_${n}.png`;
       imgs.current[n] = im;
+      const fl = new Image(); fl.onload = done; fl.onerror = done; fl.src = `/img/zone_${n}_fill.png`;
+      imgs.current[n + '_fill'] = fl;
     });
     fetch('/img/lake_zones.json').then((r) => r.json()).then((m) => {
       if (!alive) return;
@@ -65,24 +65,28 @@ export default function LakeOverlay({ active, animate = true, onHover, onQuery, 
         // ---- section glows: a color-tint pass (saturates the water) + a
         //      brighter additive pass (the glow), with pulse + hover ----
         ALL.forEach((k, i) => { const target = lake.hovered === k ? 1 : 0; hover[k] += (target - hover[k]) * 0.12; });
-        // hover simply scales the SAME glow brighter (same region/color)
-        // pass 1 — color tint
+        // passive: center-weighted glow (steady) — tint pass + additive pass
         ctx.globalCompositeOperation = 'source-over';
         ALL.forEach((k) => {
           const im = imgs.current[k]; if (!im || !im.width) return;
-          const mul = 1 + hover[k] * 0.45;
-          ctx.globalAlpha = Math.min(1, (k === 'inflow' ? 0.4 : 0.55) * mul);
+          ctx.globalAlpha = k === 'inflow' ? 0.4 : 0.55;
           ctx.drawImage(im, c.ox, c.oy, c.w, c.h);
         });
-        // pass 2 — additive glow
         ctx.globalCompositeOperation = 'lighter';
         ALL.forEach((k, i) => {
           const im = imgs.current[k]; if (!im || !im.width) return;
           const pulse = animate ? 0.5 + 0.5 * Math.sin(t * 0.4 + i * 1.7) : 0.7;
           const base = k === 'inflow' ? 0.3 : 0.5;
-          const mul = 1 + hover[k] * 0.45;
-          ctx.globalAlpha = Math.min(1, base * (0.65 + 0.35 * pulse) * mul);
+          ctx.globalAlpha = base * (0.65 + 0.35 * pulse);
           ctx.drawImage(im, c.ox, c.oy, c.w, c.h);
+        });
+        // hover: brighten the WHOLE section body uniformly (flat fill mask),
+        // so the entire region lifts evenly instead of the center blowing out
+        ALL.forEach((k) => {
+          if (hover[k] < 0.01) return;
+          const fl = imgs.current[k + '_fill']; if (!fl || !fl.width) return;
+          ctx.globalAlpha = hover[k] * 0.5;
+          ctx.drawImage(fl, c.ox, c.oy, c.w, c.h);
         });
         ctx.globalAlpha = 1;
 
