@@ -5,6 +5,7 @@ import LakeOverlay from './ui/LakeOverlay.jsx';
 import SectionLabels from './ui/SectionLabels.jsx';
 import Overlay from './ui/Overlay.jsx';
 import AgentsLayer from './ui/AgentsLayer.jsx';
+import ZoneCard from './ui/ZoneCard.jsx';
 import EnterGate from './ui/EnterGate.jsx';
 import { addRipple, lake } from './lake-state.js';
 import { START_COUNTS, ZONES, ZONE_KEYS, askLake } from './data/zones.js';
@@ -29,6 +30,7 @@ export default function App() {
   const [answer, setAnswer] = useState({ text: '', ok: true });
   const [centroids, setCentroids] = useState(null);
   const [agentId, setAgentId] = useState(null); // selected agent (null = none; card hidden)
+  const [zoneCard, setZoneCard] = useState(null); // function basin whose briefing is open
   const soundOn = false; // audio cut for now (videos stay muted)
 
   const aerial = phase === 'aerial';
@@ -60,12 +62,18 @@ export default function App() {
     setAnswer({ text, ok: true, sources: ZONES[z].sources });
   }, [hitZone]);
 
-  // clicking a basin just ripples it (no answer text / source chips — those are
-  // reserved for an actual typed question)
+  // clicking a basin opens its briefing card (and closes any agent card)
   const onQuery = useCallback((z) => {
     if (!ZONES[z]) return;
-    hitZone(z);
-  }, [hitZone]);
+    setAgentId(null);
+    setZoneCard(z);
+  }, []);
+
+  // selecting an agent closes any open basin card
+  const onSelectAgent = useCallback((id) => {
+    setZoneCard(null);
+    setAgentId(id);
+  }, []);
 
   const onAsk = useCallback((q) => {
     const r = askLake(q);
@@ -95,7 +103,9 @@ export default function App() {
 
       <Overlay visible={aerial} answer={answer} onAsk={onAsk} />
 
-      <AgentsLayer active={aerial} centroids={centroids} selectedId={agentId} onSelect={setAgentId} animate={!reduced} />
+      <AgentsLayer active={aerial} centroids={centroids} selectedId={agentId} onSelect={onSelectAgent} animate={!reduced} />
+
+      {aerial && zoneCard && <ZoneCard zoneKey={zoneCard} counts={counts} onClose={() => setZoneCard(null)} />}
 
       {!entered && <EnterGate onEnter={onEnter} />}
     </>
