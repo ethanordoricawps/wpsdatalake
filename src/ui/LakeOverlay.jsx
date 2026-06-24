@@ -64,7 +64,7 @@ export default function LakeOverlay({ active, animate = true, onHover, onQuery }
     let t0 = performance.now();
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = 1; // overlay is soft glows/ripples — DPR 1 is plenty and far lighter
       canvas.width = Math.round(window.innerWidth * dpr);
       canvas.height = Math.round(window.innerHeight * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);

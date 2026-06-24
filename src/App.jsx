@@ -22,7 +22,7 @@ export default function App() {
   const [counts, setCounts] = useState(START_COUNTS);
   const [, setHovered] = useState(null);
   const [answer, setAnswer] = useState({ text: '', ok: true });
-  const [soundOn, setSoundOn] = useState(true);
+  const [soundOn, setSoundOn] = useState(false); // audio cut for now
 
   const aerial = phase === 'aerial';
 
@@ -66,8 +66,7 @@ export default function App() {
 
   const onEnter = useCallback(() => {
     setEntered(true);
-    // a short audible beat on the ground (jungle "comes alive") before lift-off
-    setTimeout(() => setPhase('swoop'), 1800);
+    setPhase('swoop');
   }, []);
 
   return (
