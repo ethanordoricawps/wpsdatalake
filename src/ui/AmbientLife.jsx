@@ -118,8 +118,8 @@ export default function AmbientLife({ active, animate = true }) {
       // ---- birds ----
       if (animate) {
         nextFlock -= dt; nextSingle -= dt;
-        if (nextFlock <= 0) { spawnFlock(false); nextFlock = 30 + Math.random() * 22; }
-        if (nextSingle <= 0) { spawnFlock(true); nextSingle = 18 + Math.random() * 16; }
+        if (nextFlock <= 0) { spawnFlock(false); nextFlock = 25 + Math.random() * 18; }
+        if (nextSingle <= 0) { spawnFlock(true); nextSingle = 15 + Math.random() * 13; }
       }
       for (let i = birds.length - 1; i >= 0; i--) {
         const b = birds[i];
