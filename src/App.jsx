@@ -1,18 +1,19 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import VideoStage from './ui/VideoStage.jsx';
 import LakeOverlay from './ui/LakeOverlay.jsx';
 import SectionLabels from './ui/SectionLabels.jsx';
 import Overlay from './ui/Overlay.jsx';
 import EnterGate from './ui/EnterGate.jsx';
-import App3D from './App3D.jsx';
 import { addRipple, lake } from './lake-state.js';
 import { START_COUNTS, ZONES, ZONE_KEYS, askLake } from './data/zones.js';
 
+// Archived real-time 3D scene — lazy so its heavy three.js bundle only loads on ?mode=3d
+const App3D = lazy(() => import('./App3D.jsx'));
 const PARAMS = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
 
 export default function App() {
   // ?mode=3d falls back to the archived real-time 3D scene
-  if (PARAMS.get('mode') === '3d') return <App3D />;
+  if (PARAMS.get('mode') === '3d') return <Suspense fallback={null}><App3D /></Suspense>;
 
   const [reduced] = useState(
     () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
