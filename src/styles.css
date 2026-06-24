@@ -27,11 +27,20 @@ canvas {
   --muted: #BAC4AE;
 }
 
-/* ───────────────────────── HTML overlay (over the canvas) ───────────────── */
+/* ───────────────────────── video stage + interactive overlay ───────────── */
+.video-stage { position: fixed; inset: 0; z-index: 0; background: #08160e; }
+.stage-video {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; display: block;
+  transition: opacity 0.9s ease;
+}
+.lake-overlay { position: fixed; inset: 0; z-index: 1; display: block; }
+
+/* ───────────────────────── HTML overlay (over the video) ────────────────── */
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 1;
+  z-index: 2;
   pointer-events: none;
   font-family: 'Inter', sans-serif;
   color: var(--ink);
@@ -151,7 +160,7 @@ canvas {
 .gate {
   position: fixed; inset: 0; z-index: 5; display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 26px; cursor: pointer;
-  background: radial-gradient(ellipse at center, rgba(8,22,14,.5), rgba(6,16,10,.92));
+  background: radial-gradient(ellipse at center, rgba(8,22,14,.28), rgba(6,16,10,.72));
   font-family: 'Inter', sans-serif; color: var(--ink);
   transition: opacity 1.1s ease; opacity: 1;
 }

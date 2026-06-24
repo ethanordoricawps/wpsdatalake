@@ -1,81 +1,62 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Canvas } from '@react-three/fiber';
-import Scene from './scene/Scene.jsx';
+import VideoStage from './ui/VideoStage.jsx';
+import LakeOverlay from './ui/LakeOverlay.jsx';
 import Overlay from './ui/Overlay.jsx';
 import EnterGate from './ui/EnterGate.jsx';
-import { intro, resetIntro } from './intro.js';
+import App3D from './App3D.jsx';
 import { addRipple, lake } from './lake-state.js';
-import { startAmbient, setMuted } from './audio.js';
 import { START_COUNTS, ZONES, ZONE_KEYS, askLake } from './data/zones.js';
-import { zoneAt } from './data/lake.js';
 
-// Camera starts low in the forest interior; CameraRig drives the swoop to aerial.
-const CAMERA = { position: [4, 2.4, 25], fov: 45, near: 0.1, far: 200 };
 const PARAMS = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
-const AUTO = PARAMS.has('auto');
-// ?motion=1 (or ?auto) forces the full intro even if the OS requests reduced motion
-const FORCE_MOTION = PARAMS.has('motion') || AUTO;
 
 export default function App() {
+  // ?mode=3d falls back to the archived real-time 3D scene
+  if (PARAMS.get('mode') === '3d') return <App3D />;
+
   const [reduced] = useState(
-    () => !FORCE_MOTION && !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches),
+    () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
+  // phases: start (ground loop) -> swoop -> aerial. reduced jumps to aerial.
+  const [phase, setPhase] = useState(reduced ? 'aerial' : 'start');
+  const [entered, setEntered] = useState(reduced);
   const [counts, setCounts] = useState(START_COUNTS);
-  const [done, setDone] = useState(reduced); // reduced motion starts "settled"
   const [, setHovered] = useState(null);
   const [answer, setAnswer] = useState({ text: '', ok: true });
-  const [entered, setEntered] = useState(AUTO);
   const [soundOn, setSoundOn] = useState(true);
-  const [quality, setQuality] = useState('high');
 
-  useEffect(() => {
-    resetIntro(reduced);
-  }, [reduced]);
+  const aerial = phase === 'aerial';
 
-  // central "a basin was queried": ripple + bump its live count (2D hitZone)
+  // a basin was queried: ripple + bump its live count (2D hitZone)
   const hitZone = useCallback((k) => {
     if (!ZONES[k]) return;
     addRipple(k);
     setCounts((c) => ({ ...c, [k]: c[k] + 1 }));
   }, []);
 
-  // auto-life: every ~2.2s ripple a random basin (the 2D simQuery)
+  // auto-life: every ~2.2s ripple a random basin once on the aerial view
   const hitRef = useRef(hitZone);
   hitRef.current = hitZone;
   useEffect(() => {
-    if (reduced) return;
-    const id = setInterval(() => {
-      if (!done) return;
-      hitRef.current(ZONE_KEYS[(Math.random() * ZONE_KEYS.length) | 0]);
-    }, 2200);
+    if (reduced || !aerial) return;
+    const id = setInterval(() => hitRef.current(ZONE_KEYS[(Math.random() * ZONE_KEYS.length) | 0]), 2200);
     return () => clearInterval(id);
-  }, [reduced, done]);
+  }, [reduced, aerial]);
 
-  const hoverZone = useCallback((z) => {
+  const onHover = useCallback((z) => {
     lake.hovered = z;
     setHovered(z);
     document.body.style.cursor = z ? 'pointer' : 'default';
   }, []);
 
-  // pointer interaction on the water (only after the intro settles)
-  const waterHandlers = useMemo(
-    () => ({
-      onPointerMove: (e) => { if (done) hoverZone(zoneAt(e.point.x, e.point.z)); },
-      onPointerOut: () => hoverZone(null),
-      onClick: (e) => {
-        if (!done) return;
-        const z = zoneAt(e.point.x, e.point.z);
-        if (!z) return;
-        hitZone(z);
-        const Z = ZONES[z];
-        setAnswer({
-          text: `${Z.name} draws from ${Z.sources[0]} and ${Z.sources[1]}.  Illustrative — pending discovery.`,
-          ok: true,
-        });
-      },
-    }),
-    [done, hoverZone, hitZone],
-  );
+  const onQuery = useCallback((z) => {
+    if (!ZONES[z]) return;
+    hitZone(z);
+    const Z = ZONES[z];
+    setAnswer({
+      text: `${Z.name} draws from ${Z.sources[0]} and ${Z.sources[1]}.  Illustrative — pending discovery.`,
+      ok: true,
+    });
+  }, [hitZone]);
 
   const onAsk = useCallback((q) => {
     const r = askLake(q);
@@ -85,48 +66,28 @@ export default function App() {
 
   const onEnter = useCallback(() => {
     setEntered(true);
-    intro.started = true;
-    if (soundOn) startAmbient();
-  }, [soundOn]);
-
-  const toggleSound = useCallback(() => {
-    setSoundOn((s) => {
-      const next = !s;
-      if (next) startAmbient();
-      setMuted(!next);
-      return next;
-    });
+    setPhase('swoop');
   }, []);
 
   return (
     <>
-      <Canvas
-        shadows
-        camera={CAMERA}
-        gl={{ antialias: true, powerPreference: 'high-performance' }}
-        dpr={quality === 'high' ? [1, 2] : 1}
-      >
-        <Scene
-          animate={!reduced}
-          reduced={reduced}
-          autoStart={AUTO}
-          done={done}
-          quality={quality}
-          onIntroDone={() => setDone(true)}
-          waterHandlers={waterHandlers}
-        />
-      </Canvas>
+      <VideoStage
+        phase={phase}
+        soundOn={soundOn}
+        reduced={reduced}
+        onSwoopEnd={() => setPhase('aerial')}
+      />
+
+      <LakeOverlay active={aerial} animate={!reduced} onHover={onHover} onQuery={onQuery} />
 
       <Overlay
-        visible={done && entered}
+        visible={aerial}
         counts={counts}
         answer={answer}
-        onHover={hoverZone}
+        onHover={onHover}
         onAsk={onAsk}
         soundOn={soundOn}
-        onToggleSound={toggleSound}
-        quality={quality}
-        onToggleQuality={() => setQuality((q) => (q === 'high' ? 'low' : 'high'))}
+        onToggleSound={() => setSoundOn((s) => !s)}
       />
 
       {!entered && <EnterGate onEnter={onEnter} />}

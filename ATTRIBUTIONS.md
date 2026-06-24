@@ -1,5 +1,18 @@
 # Attributions
 
+## Video (AI-generated, provided by WPS)
+
+The cinematic clips in `public/video/` are AI-generated (Google Veo 3.1 via
+ElevenLabs) and provided by WPS — not versioned in git (see `.gitignore`):
+
+- `start.mp4` — ground-level rainforest loop (the landing view / Enter screen)
+- `swoop.mp4` — the swoop from forest floor up to the aerial lake
+- `aerial.mp4` (+ `aerial_alt.mp4`) — the aerial lake loop (interactive background)
+
+Posters in `public/img/` are stills extracted from these clips (graceful
+fallback + reduced-motion frame).
+
+
 ## Sourced CC0 assets (Poly Haven / ambientCG — all CC0, no attribution required)
 
 - **`public/hdri/mossy_forest_2k.hdr`** — "Mossy Forest" HDRI, Poly Haven (CC0).
