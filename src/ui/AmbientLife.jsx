@@ -23,14 +23,21 @@ export default function AmbientLife({ active, animate = true }) {
     resize();
     window.addEventListener('resize', resize);
 
-    // fog: many small wisps scattered from the canopies (high) down across the
-    // water (y ~0.08..0.62), drifting in alternating directions
+    // fog: small amorphous wisps — each is a cluster of soft puffs at random
+    // offsets, scattered from the canopies (high) down across the water
+    // (y ~0.08..0.62), drifting slowly in alternating directions
     const FOG_N = 12;
     const fog = Array.from({ length: FOG_N }, (_, i) => ({
-      x: Math.random(), y: 0.08 + (i / FOG_N) * 0.54 + (Math.random() - 0.5) * 0.07,
-      w: 0.22 + Math.random() * 0.42, h: 0.05 + Math.random() * 0.07,
+      x: Math.random(),
+      y: 0.08 + (i / FOG_N) * 0.54 + (Math.random() - 0.5) * 0.07,
+      r: 0.05 + Math.random() * 0.06,                 // base lobe radius (fraction of frame width)
       speed: (0.0275 + Math.random() * 0.035) * (i % 2 ? 1 : -1),
-      a: 0.18 + Math.random() * 0.04,
+      a: 0.05 + Math.random() * 0.015,                // per-lobe alpha (lobes overlap to build density)
+      puffs: Array.from({ length: 4 + (Math.random() * 4 | 0) }, () => ({
+        dx: (Math.random() - 0.5) * 2.6,              // lobe offset, in units of r
+        dy: (Math.random() - 0.5) * 1.6,
+        s: 0.5 + Math.random() * 0.8,                 // lobe size scale
+      })),
     }));
 
     // birds fly along a depth axis: from a far vanishing point up near the
@@ -89,19 +96,23 @@ export default function AmbientLife({ active, animate = true }) {
       const vw = window.innerWidth, vh = window.innerHeight, c = cover(vw, vh);
       ctx.clearRect(0, 0, vw, vh);
 
-      // ---- fog banks ----
+      // ---- fog: clusters of soft puffs = amorphous wisps ----
+      // ease the whole layer in over the first ~6s so it doesn't pop in fully
+      // formed on load — it settles to its steady density
+      const fogIn = smooth(Math.min(1, t / 6));
       fog.forEach((f) => {
-        if (animate) { f.x += f.speed * dt; if (f.x > 1.3) f.x = -0.3; if (f.x < -0.3) f.x = 1.3; }
+        if (animate) { f.x += f.speed * dt; if (f.x > 1.5) f.x = -0.5; if (f.x < -0.5) f.x = 1.5; }
         const cx = c.ox + f.x * c.w, cy = c.oy + f.y * c.h;
-        const rw = f.w * c.w, rh = f.h * c.h;
-        const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rw / 2);
-        g.addColorStop(0, `rgba(232,240,232,${f.a})`);
-        g.addColorStop(1, 'rgba(232,240,232,0)');
-        ctx.save();
-        ctx.translate(cx, cy); ctx.scale(1, rh / rw); ctx.translate(-cx, -cy);
-        ctx.fillStyle = g;
-        ctx.beginPath(); ctx.arc(cx, cy, rw / 2, 0, Math.PI * 2); ctx.fill();
-        ctx.restore();
+        const baseR = f.r * c.w;
+        for (const p of f.puffs) {
+          const px = cx + p.dx * baseR, py = cy + p.dy * baseR;
+          const pr = baseR * p.s;
+          const g = ctx.createRadialGradient(px, py, 0, px, py, pr);
+          g.addColorStop(0, `rgba(232,240,232,${f.a * fogIn})`);
+          g.addColorStop(1, 'rgba(232,240,232,0)');
+          ctx.fillStyle = g;
+          ctx.beginPath(); ctx.arc(px, py, pr, 0, Math.PI * 2); ctx.fill();
+        }
       });
 
       // ---- birds ----
