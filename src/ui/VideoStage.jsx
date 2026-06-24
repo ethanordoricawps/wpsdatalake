@@ -5,10 +5,16 @@ import { useEffect, useRef } from 'react';
 //   swoop  -> 4.mp4 plays once (with audio), ends on the aerial lake
 //   aerial -> 2.mp4 aerial lake loop (interactive layer sits on top)
 // Posters back each video so a frame shows even if decoding isn't available.
+// The swoop overshoots the aerial-loop's start by ~0.38s. Cutting here (tuned
+// by SSIM-matching swoop frames against aerial.mp4's first frame) lands the
+// swoop exactly where the idle loop begins — no backward jump at the handoff.
+const SWOOP_CUT = 5.64;
+
 export default function VideoStage({ phase, soundOn, onSwoopEnd, reduced }) {
   const startRef = useRef();
   const swoopRef = useRef();
   const aerialRef = useRef();
+  const cutDone = useRef(false);
 
   // drive playback off the phase
   useEffect(() => {
@@ -19,17 +25,28 @@ export default function VideoStage({ phase, soundOn, onSwoopEnd, reduced }) {
     if (phase === 'start') {
       start?.play?.().catch(() => {});
     } else if (phase === 'swoop') {
-      if (swoop) {
-        swoop.muted = !soundOn;
-        swoop.currentTime = 0;
-        swoop.play?.().catch(() => {});
-      }
+      if (!swoop) return;
+      cutDone.current = false;
+      swoop.muted = !soundOn;
+      swoop.currentTime = 0;
+      swoop.play?.().catch(() => {});
+      // hand off a few frames early, holding the matching frame, so the
+      // crossfade to the aerial loop blends two aligned poses
+      const onTime = () => {
+        if (cutDone.current || swoop.currentTime < SWOOP_CUT) return;
+        cutDone.current = true;
+        swoop.pause();
+        onSwoopEnd?.();
+      };
+      swoop.addEventListener('timeupdate', onTime);
+      return () => swoop.removeEventListener('timeupdate', onTime);
     } else if (phase === 'aerial') {
-      // reduced motion: hold the poster (no looping video)
-      if (reduced) aerial?.pause?.();
-      else aerial?.play?.().catch(() => {});
+      if (!aerial) return;
+      aerial.currentTime = 0; // start on the frame the swoop paused at
+      if (reduced) aerial.pause?.();
+      else aerial.play?.().catch(() => {});
     }
-  }, [phase, soundOn, reduced]);
+  }, [phase, soundOn, reduced, onSwoopEnd]);
 
   const vis = (p) => ({ opacity: phase === p ? 1 : 0 });
 
