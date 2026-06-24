@@ -72,16 +72,16 @@ export default function LakeOverlay({ active, animate = true, onHover, onQuery, 
         ctx.globalCompositeOperation = 'source-over';
         ALL.forEach((k) => {
           const g = imgs.current[k], f = imgs.current[k + '_fill'];
-          const baseT = k === 'inflow' ? 0.28 : 0.4;
+          const baseT = k === 'inflow' ? 0.22 : 0.32;
           if (g && g.width && hover[k] < 0.99) { ctx.globalAlpha = baseT * (1 - hover[k]); ctx.drawImage(g, c.ox, c.oy, c.w, c.h); }
-          if (f && f.width && hover[k] > 0.01) { ctx.globalAlpha = 0.44 * hover[k]; ctx.drawImage(f, c.ox, c.oy, c.w, c.h); }
+          if (f && f.width && hover[k] > 0.01) { ctx.globalAlpha = 0.36 * hover[k]; ctx.drawImage(f, c.ox, c.oy, c.w, c.h); }
         });
         // pass 2 — additive glow (same crossfade)
         ctx.globalCompositeOperation = 'lighter';
         ALL.forEach((k, i) => {
           const g = imgs.current[k], f = imgs.current[k + '_fill'];
           const pulse = animate ? 0.5 + 0.5 * Math.sin(t * 0.4 + i * 1.7) : 0.7;
-          const base = k === 'inflow' ? 0.2 : 0.34;
+          const base = k === 'inflow' ? 0.15 : 0.26;
           if (g && g.width && hover[k] < 0.99) { ctx.globalAlpha = base * (0.65 + 0.35 * pulse) * (1 - hover[k]); ctx.drawImage(g, c.ox, c.oy, c.w, c.h); }
           if (f && f.width && hover[k] > 0.01) { ctx.globalAlpha = base * (0.65 + 0.35 * pulse) * hover[k]; ctx.drawImage(f, c.ox, c.oy, c.w, c.h); }
         });
