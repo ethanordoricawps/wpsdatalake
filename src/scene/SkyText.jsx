@@ -5,8 +5,8 @@ import * as THREE from 'three';
 import { intro, T } from '../intro.js';
 import { PALETTE } from '../data/zones.js';
 
-const FRAUNCES = '/fonts/fraunces-400.woff';
-const INTER = '/fonts/inter-600.woff';
+const FRAUNCES = `${import.meta.env.BASE_URL}fonts/fraunces-400.woff`;
+const INTER = `${import.meta.env.BASE_URL}fonts/inter-600.woff`;
 
 const easeOut = (x) => 1 - Math.pow(1 - THREE.MathUtils.clamp(x, 0, 1), 3);
 const easeIn = (x) => Math.pow(THREE.MathUtils.clamp(x, 0, 1), 2);

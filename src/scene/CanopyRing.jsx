@@ -76,9 +76,9 @@ export default function CanopyRing({ animate = true, quality = 'high' }) {
   // photographic leaf surface (diffuse + normal + roughness), tiled small so
   // the canopy reads as leafy/mossy masses instead of smooth domes
   const [map, normalMap, roughnessMap] = useTexture([
-    '/tex/forest_leaves_diffuse.jpg',
-    '/tex/forest_leaves_nor.jpg',
-    '/tex/forest_leaves_rough.jpg',
+    `${import.meta.env.BASE_URL}tex/forest_leaves_diffuse.jpg`,
+    `${import.meta.env.BASE_URL}tex/forest_leaves_nor.jpg`,
+    `${import.meta.env.BASE_URL}tex/forest_leaves_rough.jpg`,
   ]);
   useMemo(() => {
     [map, normalMap, roughnessMap].forEach((t) => {

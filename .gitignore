@@ -25,6 +25,3 @@ dist-ssr
 
 # screenshots
 .shots/
-
-# large drop-in video assets (provided, not versioned)
-public/video/*.mp4

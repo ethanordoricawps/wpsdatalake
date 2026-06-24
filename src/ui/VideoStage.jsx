@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 // lake_still.jpg held as the interactive background. Only the active phase's
 // video decodes (others are paused) to keep things light. Audio is muted for now.
 const SWOOP_CUT = 5.95;
+const B = import.meta.env.BASE_URL; // '/' in dev, '/<repo>/' on GitHub Pages
 
 export default function VideoStage({ phase, soundOn, onSwoopEnd }) {
   const startRef = useRef();
@@ -48,8 +49,8 @@ export default function VideoStage({ phase, soundOn, onSwoopEnd }) {
         ref={startRef}
         className="stage-video"
         style={vis('start')}
-        src="/video/start.mp4"
-        poster="/img/start_poster.jpg"
+        src={`${B}video/start.mp4`}
+        poster={`${B}img/start_poster.jpg`}
         loop
         muted
         playsInline
@@ -59,8 +60,8 @@ export default function VideoStage({ phase, soundOn, onSwoopEnd }) {
         ref={swoopRef}
         className="stage-video"
         style={vis('swoop')}
-        src="/video/swoop.mp4"
-        poster="/img/lake_still.jpg"
+        src={`${B}video/swoop.mp4`}
+        poster={`${B}img/lake_still.jpg`}
         muted
         playsInline
         preload="auto"
@@ -70,7 +71,7 @@ export default function VideoStage({ phase, soundOn, onSwoopEnd }) {
       <img
         className="stage-video"
         style={{ opacity: phase === 'aerial' ? 1 : 0 }}
-        src="/img/lake_still.jpg"
+        src={`${B}img/lake_still.jpg`}
         alt=""
       />
     </div>

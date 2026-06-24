@@ -12,6 +12,7 @@ function cover(vw, vh) {
   return { ox: (vw - w) / 2, oy: (vh - h) / 2, w, h };
 }
 const toPx = (nx, ny, c) => [c.ox + nx * c.w, c.oy + ny * c.h];
+const B = import.meta.env.BASE_URL; // '/' in dev, '/<repo>/' on GitHub Pages
 
 export default function LakeOverlay({ active, animate = true, onHover, onQuery, onReady }) {
   const canvasRef = useRef();
@@ -27,12 +28,12 @@ export default function LakeOverlay({ active, animate = true, onHover, onQuery, 
     const done = () => { if (--pending === 0 && alive) setLoaded(true); };
     pending += names.length; // also load the per-zone fill masks
     names.forEach((n) => {
-      const im = new Image(); im.onload = done; im.onerror = done; im.src = `/img/zone_${n}.png`;
+      const im = new Image(); im.onload = done; im.onerror = done; im.src = `${B}img/zone_${n}.png`;
       imgs.current[n] = im;
-      const fl = new Image(); fl.onload = done; fl.onerror = done; fl.src = `/img/zone_${n}_fill.png`;
+      const fl = new Image(); fl.onload = done; fl.onerror = done; fl.src = `${B}img/zone_${n}_fill.png`;
       imgs.current[n + '_fill'] = fl;
     });
-    fetch('/img/lake_zones.json').then((r) => r.json()).then((m) => {
+    fetch(`${B}img/lake_zones.json`).then((r) => r.json()).then((m) => {
       if (!alive) return;
       meta.current = m;
       onReady?.(m.centroids);
