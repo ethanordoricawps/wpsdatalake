@@ -24,11 +24,15 @@ export default function Overlay({ visible, answer, onAsk, showAsk = true, qualit
   }, [answer]);
 
   return (
-    <div className={`overlay overlay-fade ${visible ? 'show' : ''}`}>
-      {/* legibility scrims (behind text, any background) */}
-      <div className="ov-scrim-top" />
-      <div className="ov-scrim-bottom" />
+    <>
+      {/* legibility scrims — full-bleed; fade in by opacity only (no drift) so
+          they cover edge-to-edge consistently from the start */}
+      <div className={`ov-scrims ${visible ? 'show' : ''}`} aria-hidden="true">
+        <div className="ov-scrim-top" />
+        <div className="ov-scrim-bottom" />
+      </div>
 
+      <div className={`overlay overlay-fade ${visible ? 'show' : ''}`}>
       {/* header */}
       <header className="ov-header">
         <div>
@@ -77,6 +81,7 @@ export default function Overlay({ visible, answer, onAsk, showAsk = true, qualit
           {quality === 'high' ? 'HD' : 'LO'}
         </button>
       )}
-    </div>
+      </div>
+    </>
   );
 }

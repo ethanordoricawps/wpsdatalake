@@ -77,6 +77,10 @@ canvas {
   transform: none;
 }
 
+/* scrims fade in by opacity only (no translate) so they cover the whole frame
+   from the first frame instead of sliding in at the edges */
+.ov-scrims { position: fixed; inset: 0; z-index: 4; pointer-events: none; opacity: 0; transition: opacity 1.4s ease; }
+.ov-scrims.show { opacity: 1; }
 .ov-scrim-top, .ov-scrim-bottom { position: absolute; left: 0; right: 0; pointer-events: none; }
 .ov-scrim-top { top: 0; height: 26%; background: linear-gradient(rgba(4,13,8,.72), rgba(4,13,8,0)); }
 .ov-scrim-bottom { bottom: 0; height: 30%; background: linear-gradient(rgba(4,13,8,0), rgba(4,13,8,.75)); }
@@ -102,7 +106,7 @@ canvas {
 /* honor reduced motion: no pulses, no fade transitions */
 @media (prefers-reduced-motion: reduce) {
   .ov-pill, .ov-pill .dot, .gate .enter, .charter-backdrop, .zone-card { animation: none !important; }
-  .overlay-fade { transition: none !important; }
+  .overlay-fade, .ov-scrims { transition: none !important; }
 }
 
 /* header */
