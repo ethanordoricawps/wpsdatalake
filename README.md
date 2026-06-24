@@ -1,9 +1,8 @@
-# The WPS Data Lake — Interactive 3D
+# The WPS Data Lake — Interactive
 
-A browser-based, cinematic 3D scene (React Three Fiber): open inside a rainforest,
-swoop up through the canopy, flatten to an aerial view of an Amazonian lake whose
-four basins **are** the four WPS data functions, then settle into a living idle
-state. The 3D twin of the existing 2D canvas design (`The WPS Data Lake.html`).
+A browser experience for WPS: a cinematic rainforest intro that swoops down to an
+aerial lake, where the lake's four basins are the four WPS **data functions**. The
+jungle is photoreal video; the data layer is interactive on top of the water.
 
 > **Content honesty:** the data-state is illustrative and **unconfirmed until the
 > discovery questionnaires return** — every surfaced answer keeps the
@@ -13,61 +12,73 @@ state. The 3D twin of the existing 2D canvas design (`The WPS Data Lake.html`).
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
+npm run dev      # http://localhost:5173   (add -- --host to expose on the network)
 npm run build    # production build -> dist/
 npm run preview  # serve the production build
 ```
 
-Click **Enter the lake** to start (the tap-to-enter gate is the autoplay
-workaround for ambient audio + the cinematic intro).
+Click **Enter the lake** to start (the gate is the autoplay/interaction trigger).
 
-**URL flags:** `?auto=1` skips the gate and auto-starts the intro (used for
-headless screenshots / tests).
+**URL flags**
+- `?mode=3d` — the archived real-time React-Three-Fiber scene (lazy-loaded; kept as a fallback/reference).
 
-## The experience
+## How it works
 
-| t (s) | Phase |
-|---|---|
-| 0–4 | Forest interior, low, looking horizontal |
-| 4–8 | Swoop up through the canopy |
-| 8–10 | Flatten & settle to the aerial framing |
-| 10–13 | Hero title "The WPS Data Lake" fades up from the sky |
-| 13+ | Idle/live: clamped orbit, swaying canopy, drifting clouds, pulsing basins, inflow motes, auto-ripples; HTML overlay (zone cards, "Ask the lake") takes over |
+The experience is **video + an interactive data overlay**, not real-time 3D:
 
-- **Click a basin** or use **"Ask the lake"** (keyword → zone via `ASK_MAP`):
-  ripples the basin, bumps its live query count, surfaces its two data sources.
-- **Orbit** gently (clamped polar/azimuth/distance — can't break the framing).
-- **HD/LO** toggle and a **sound** toggle sit bottom-right.
-- **`prefers-reduced-motion`** → a clean static aerial, no swoop, no looping motion.
+1. **Start** — `public/video/start.mp4` (ground-level rainforest) loops behind the Enter gate.
+2. **Swoop** — on Enter, `public/video/swoop.mp4` plays once and **freezes on its final frame**.
+3. **Aerial** — that final frame (`public/img/lake_still.jpg`) is held as the interactive
+   background; the four function basins glow **on the real water**, with hover, click /
+   "Ask the lake", ripples, and live query counts.
+
+### The data overlay (the key idea)
+
+The lake was **segmented from the still image** (not hand-drawn): a brightness flood-fill
+finds the water, which is then carved into four organic sections + an inflow arm. That bake
+produces, in `public/img/`:
+
+- `zone_<k>.png` — per-section **feathered glow** (center-weighted, fades at seams/shoreline)
+- `zone_<k>_fill.png` — per-section **uniform fill** (used for the even hover brighten)
+- `lake_zones.json` — hit-test grid + section centroids + inflow path
+
+`LakeOverlay` composites those glow layers over the held still (color-tint + additive passes,
+per-section pulse, hover crossfades glow→uniform-fill), ripples are clipped to each section
+(they bend around its borders), and pointer hits resolve via the grid. `SectionLabels` anchors
+each function's name + live count to its section centroid.
+
+### Regenerating the segmentation
+
+The bake scripts live in the session scratchpad (`.shots/segment.js`, `.shots/export_layers.js`)
+and read `public/img/lake_still.jpg`. If the lake still changes, re-run `export_layers.js`
+(needs `jpeg-js` + `pngjs`) to regenerate the glow masks + `lake_zones.json`. Tunables
+(brightness threshold, section seeds, inflow neck cut, feather) are constants at the top.
 
 ## Architecture
 
 ```
 src/
-  data/zones.js     SOURCE OF TRUTH — ZONES, START_COUNTS, PALETTE, FOLIAGE, ASK_MAP (verbatim from the 2D file)
-  data/lake.js      lake geometry: lakeGeom / computeCells / shoreline wobble in world space; zoneAt()
-  intro.js          shared intro-timeline clock (camera/text/audio sync)
-  lake-state.js     non-React ripple + hover state (read in useFrame)
-  audio.js          procedural WebAudio ambient bed (CC0-clean)
-  scene/
-    Scene.jsx       assembles the Canvas children
-    Lighting, JungleFloor, WaterSurface (basin glows + channels + shimmer + sun pools, one shader),
-    CanopyRing (instanced foliage + wind), Clouds, Inflow, RippleManager,
-    CameraRig (cinematic timeline), SkyText (Troika title), Post (bloom + vignette)
+  App.jsx              phases (start -> swoop -> aerial), counts, hover/click, auto-life
+  data/zones.js        SOURCE OF TRUTH — ZONES, START_COUNTS, ASK_MAP (verbatim from the 2D file)
+  lake-state.js        shared ripple/hover state (read in the overlay draw loop)
   ui/
-    EnterGate.jsx   tap-to-enter
-    Overlay.jsx     header, demo pill, 4 zone cards, "Ask the lake", toggles
+    VideoStage.jsx     start/swoop videos + held still; freezes the swoop on its final frame
+    LakeOverlay.jsx    canvas: section glows + section-clipped ripples + hit-test
+    SectionLabels.jsx  name + live count anchored to each section centroid
+    Overlay.jsx        header + demo pill + "Ask the lake" + legibility scrims
+    EnterGate.jsx      tap-to-enter
+  App3D.jsx, scene/    archived real-time R3F scene (?mode=3d, lazy-loaded)
+public/
+  video/  start.mp4 swoop.mp4 (+ aerial.mp4)   # AI-generated (Veo), gitignored — drop-in
+  img/    lake_still.jpg, zone_*.png, lake_zones.json, posters, favicon
 ```
-
-The four basins, their colors, relative sizes (`v`), glow weights (`bright`),
-sources, and the `ASK_MAP` are carried over **verbatim** from the 2D file — see
-`src/data/zones.js`. Geometry mirrors the 2D `computeCells` in world space.
 
 ## Notes
 
-- **Stylized realism**, not photoreal — by design (it twins a flat 2D canvas).
-- **All 3D geometry is procedural / CC0-clean** — no downloaded models. See
-  `ATTRIBUTIONS.md` for the rationale (and how to swap in sourced GLB trees later).
-- Fonts (Fraunces / Inter) are vendored locally in `public/fonts/`.
-- Performance: single `InstancedMesh` canopy, capped particle pools, clamped dpr,
-  HD/LO quality toggle (Low drops post-processing, clouds, half the canopy, dpr 1).
+- **Video clips** are AI-generated (Veo) and **not versioned** (see `.gitignore`); drop them in
+  `public/video/`. They're 1920×1080 H.264; cropped to remove baked black bars and re-encoded lean.
+- **Audio** is currently off (the clips' tracks are muted).
+- **Performance:** only the active phase's video decodes; the aerial is a static still + a light
+  canvas overlay (DPR 1); three.js is code-split out of the main bundle.
+- `prefers-reduced-motion` skips the swoop and holds the still (no looping motion).
+- See `ATTRIBUTIONS.md` for asset provenance (CC0 fonts; AI-generated video).
