@@ -194,7 +194,16 @@ canvas {
   border: 1px solid rgba(160,200,140,.4); background: rgba(120,170,90,.14);
   color: #CDE6A6; font-size: 13px; letter-spacing: .14em; text-transform: uppercase;
   display: flex; align-items: center; gap: 10px; animation: wps-pillpulse 3.4s ease-in-out infinite;
+  transition: background .25s ease, border-color .25s ease, color .25s ease, transform .25s ease, box-shadow .25s ease;
 }
+.gate .enter:hover {
+  background: rgba(140,190,105,.28);
+  border-color: rgba(180,220,150,.75);
+  color: #EAF6D8;
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 6px 26px rgba(120,170,90,.28), 0 0 18px rgba(167,221,140,.35);
+}
+.gate .enter:hover .dot { box-shadow: 0 0 12px #A7DD8C; }
 .gate .enter .dot {
   width: 7px; height: 7px; border-radius: 50%; background: #A7DD8C; box-shadow: 0 0 8px #A7DD8C;
 }

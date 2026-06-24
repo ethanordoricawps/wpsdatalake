@@ -91,10 +91,6 @@ export default function Overlay({ visible, counts, answer, onHover, onAsk, sound
         </div>
       </div>
 
-      {/* sound + quality toggles */}
-      <button className="ov-sound" onClick={onToggleSound} aria-label="Toggle sound" title="Toggle ambient sound">
-        {soundOn ? '🔊' : '🔈'}
-      </button>
       {onToggleQuality && (
         <button
           className="ov-quality"
