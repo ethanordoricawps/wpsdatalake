@@ -37,11 +37,6 @@ export default function SectionLabels({ centroids, counts, visible }) {
           </div>
         );
       })}
-      {pos('inflow') && (
-        <div className="lake-label inflow" style={{ left: pos('inflow').left, top: pos('inflow').top }}>
-          <div className="ll-tag">Incoming data</div>
-        </div>
-      )}
     </div>
   );
 }

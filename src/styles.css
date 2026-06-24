@@ -76,6 +76,10 @@ canvas {
   transform: none;
 }
 
+.ov-scrim-top, .ov-scrim-bottom { position: absolute; left: 0; right: 0; pointer-events: none; }
+.ov-scrim-top { top: 0; height: 26%; background: linear-gradient(rgba(4,13,8,.72), rgba(4,13,8,0)); }
+.ov-scrim-bottom { bottom: 0; height: 30%; background: linear-gradient(rgba(4,13,8,0), rgba(4,13,8,.75)); }
+
 @keyframes wps-pillpulse { 0%, 100% { opacity: .85; } 50% { opacity: 1; } }
 @keyframes wps-dotpulse  { 0%, 100% { opacity: .4; transform: scale(.85); } 50% { opacity: 1; transform: scale(1.15); } }
 

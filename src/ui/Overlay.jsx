@@ -63,6 +63,10 @@ export default function Overlay({ visible, counts, answer, onHover, onAsk, sound
 
   return (
     <div className={`overlay overlay-fade ${visible ? 'show' : ''}`}>
+      {/* legibility scrims (behind text, any background) */}
+      <div className="ov-scrim-top" />
+      <div className="ov-scrim-bottom" />
+
       {/* header */}
       <div className="ov-header">
         <div>
