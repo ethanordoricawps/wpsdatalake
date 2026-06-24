@@ -95,11 +95,12 @@ export default function LakeOverlay({ active, animate = true, onHover, onQuery, 
         const byZone = {};
         for (let i = rs.length - 1; i >= 0; i--) {
           const r = rs[i];
-          if (animate) r.t += 0.011;
+          if (animate) r.t += 0.006; // slower expansion
           if (r.t >= 1) { rs.splice(i, 1); continue; }
           (byZone[r.key] || (byZone[r.key] = [])).push(r);
         }
         const maxR = Math.max(c.w, c.h) * 0.55; // generous; the mask shapes it
+        const RINGS = 4, SPACING = 0.13; // a train of concentric rings per ripple
         for (const k in byZone) {
           const ctr = cen && cen[k]; const fl = imgs.current[k + '_fill'];
           if (!ctr || !fl || !fl.width) continue;
@@ -107,12 +108,16 @@ export default function LakeOverlay({ active, animate = true, onHover, onQuery, 
           offCtx.clearRect(0, 0, vw, vh);
           offCtx.globalCompositeOperation = 'source-over';
           for (const r of byZone[k]) {
-            const rad = r.t * maxR;
-            offCtx.beginPath();
-            offCtx.arc(px, py, rad, 0, Math.PI * 2);
-            offCtx.strokeStyle = `rgba(225,238,205,${(1 - r.t) * 0.65})`;
-            offCtx.lineWidth = 3 * (1 - r.t) + 1;
-            offCtx.stroke();
+            for (let j = 0; j < RINGS; j++) {
+              const tt = r.t - j * SPACING;
+              if (tt <= 0) continue;
+              const rad = tt * maxR;
+              offCtx.beginPath();
+              offCtx.arc(px, py, rad, 0, Math.PI * 2);
+              offCtx.strokeStyle = `rgba(225,238,205,${(1 - r.t) * 0.34 * (1 - j * 0.22)})`;
+              offCtx.lineWidth = 2 * (1 - tt) + 0.7;
+              offCtx.stroke();
+            }
           }
           // keep only the part inside the section (soft fill edge = it bends/fades at the border)
           offCtx.globalCompositeOperation = 'destination-in';
