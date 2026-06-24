@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
-// "Tap to enter" gate — the autoplay workaround. Click starts audio + the
-// cinematic intro, then the gate fades out.
+// "Tap to enter" gate — the autoplay workaround. Only the button starts audio +
+// the cinematic intro (clicking elsewhere does nothing), then the gate fades out.
 export default function EnterGate({ onEnter }) {
   const [leaving, setLeaving] = useState(false);
 
@@ -12,16 +12,10 @@ export default function EnterGate({ onEnter }) {
   };
 
   return (
-    <div
-      className={`gate ${leaving ? 'leaving' : ''}`}
-      onClick={enter}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') enter(); }}
-    >
+    <div className={`gate ${leaving ? 'leaving' : ''}`}>
       <h1>The WPS Data Lake</h1>
       <div className="sub">one source of truth · four functions · pending discovery</div>
-      <div className="enter"><span className="dot" /> Enter the lake</div>
+      <button className="enter" onClick={enter}><span className="dot" /> Enter the lake</button>
     </div>
   );
 }
