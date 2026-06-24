@@ -6,9 +6,11 @@ import RetrievalLayer from './ui/RetrievalLayer.jsx';
 import SectionLabels from './ui/SectionLabels.jsx';
 import Overlay from './ui/Overlay.jsx';
 import ModeRail from './ui/ModeRail.jsx';
+import AgentsLayer from './ui/AgentsLayer.jsx';
 import EnterGate from './ui/EnterGate.jsx';
 import { addRipple, addFlow, lake } from './lake-state.js';
 import { START_COUNTS, ZONES, ZONE_KEYS, askLake } from './data/zones.js';
+import { AGENTS } from './data/agents.js';
 
 // Archived real-time 3D scene — lazy so its heavy three.js bundle only loads on ?mode=3d
 const App3D = lazy(() => import('./App3D.jsx'));
@@ -30,6 +32,7 @@ export default function App() {
   const [answer, setAnswer] = useState({ text: '', ok: true });
   const [centroids, setCentroids] = useState(null);
   const [mode, setMode] = useState('lake'); // lake -> retrieve -> agents
+  const [agentId, setAgentId] = useState('ranger'); // edge-case agent spotlighted
   const soundOn = false; // audio cut for now (videos stay muted)
 
   const aerial = phase === 'aerial';
@@ -51,9 +54,20 @@ export default function App() {
   }, [reduced, aerial]);
 
   const onHover = useCallback((z) => {
+    if (mode === 'agents') return; // territory is locked to the selected agent
     lake.hovered = z; // read by LakeOverlay's draw loop (no React re-render needed)
     document.body.style.cursor = z ? 'pointer' : 'default';
-  }, []);
+  }, [mode]);
+
+  // in Agents mode, light up the selected agent's territory basin
+  useEffect(() => {
+    if (mode === 'agents') {
+      const a = AGENTS.find((x) => x.id === agentId);
+      lake.hovered = a ? a.zone : null;
+    } else {
+      lake.hovered = null;
+    }
+  }, [mode, agentId]);
 
   const surface = useCallback((z, text) => {
     hitZone(z);
@@ -96,6 +110,8 @@ export default function App() {
       <SectionLabels centroids={centroids} counts={counts} visible={aerial && mode !== 'agents'} />
 
       <Overlay visible={aerial} answer={answer} onAsk={onAsk} showAsk={mode !== 'agents'} />
+
+      <AgentsLayer active={aerial && mode === 'agents'} centroids={centroids} selectedId={agentId} onSelect={setAgentId} />
 
       <ModeRail mode={mode} setMode={setMode} visible={aerial} />
 

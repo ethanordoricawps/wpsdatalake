@@ -233,6 +233,38 @@ canvas {
 .mode-seg .seg-label { font-size: 12.5px; font-weight: 600; letter-spacing: .04em; }
 .mode-seg .seg-step { font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase; opacity: .7; }
 
+/* ───────────────────────── agents (creatures + charters) ───────────────── */
+.agents-layer { position: fixed; inset: 0; z-index: 4; pointer-events: none; font-family: 'Inter', sans-serif; color: var(--ink); }
+.agent-marker {
+  position: absolute; transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: none; border: none; cursor: pointer; pointer-events: auto; color: var(--ink);
+}
+.am-dot { width: 12px; height: 12px; border-radius: 50%; }
+.agent-marker.on .am-dot { animation: wps-dotpulse 2s ease-in-out infinite; }
+.agent-marker.edge .am-dot { box-shadow: 0 0 0 3px rgba(255,255,255,.15), 0 0 14px currentColor; }
+.am-label { text-align: center; text-shadow: 0 1px 10px rgba(2,10,5,.95); opacity: .8; }
+.agent-marker.on .am-label, .agent-marker:hover .am-label { opacity: 1; }
+.am-name { display: block; font-size: 12px; font-weight: 600; letter-spacing: .06em; }
+.am-creature { display: block; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; color: #9fb39a; }
+
+.charter {
+  position: fixed; left: 36px; top: 50%; transform: translateY(-50%);
+  width: 330px; max-width: 42vw; z-index: 4; pointer-events: auto;
+  padding: 18px 20px; border-radius: 16px;
+  border: 1px solid rgba(160,200,140,.26); background: rgba(9,24,15,.72);
+  backdrop-filter: blur(8px); box-shadow: 0 10px 40px rgba(2,10,5,.55); color: var(--ink);
+}
+.charter-head { display: flex; align-items: center; gap: 11px; margin-bottom: 14px; }
+.charter-dot { width: 12px; height: 12px; border-radius: 50%; flex: none; box-shadow: 0 0 12px currentColor; }
+.charter-name { font-family: 'Fraunces', serif; font-size: 20px; line-height: 1; }
+.charter-sub { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #9fb39a; margin-top: 3px; }
+.charter-fields { margin: 0; }
+.charter-row { margin-bottom: 10px; }
+.charter-row dt { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: #8A9680; }
+.charter-row dd { margin: 2px 0 0; font-size: 12.5px; line-height: 1.45; color: #D6DCC9; }
+.charter-foot { margin-top: 4px; font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: rgba(196,204,184,.5); font-style: italic; }
+
 /* ───────────────────────── enter gate ──────────────────────────────────── */
 .gate {
   position: fixed; inset: 0; z-index: 5; display: flex; flex-direction: column;
