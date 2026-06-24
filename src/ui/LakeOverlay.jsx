@@ -65,11 +65,13 @@ export default function LakeOverlay({ active, animate = true, onHover, onQuery, 
         // ---- section glows: a color-tint pass (saturates the water) + a
         //      brighter additive pass (the glow), with pulse + hover ----
         ALL.forEach((k, i) => { const target = lake.hovered === k ? 1 : 0; hover[k] += (target - hover[k]) * 0.12; });
+        // hover simply scales the SAME glow brighter (same region/color)
         // pass 1 — color tint
         ctx.globalCompositeOperation = 'source-over';
         ALL.forEach((k) => {
           const im = imgs.current[k]; if (!im || !im.width) return;
-          ctx.globalAlpha = Math.min(1, (k === 'inflow' ? 0.4 : 0.55) + hover[k] * 0.2);
+          const mul = 1 + hover[k] * 0.45;
+          ctx.globalAlpha = Math.min(1, (k === 'inflow' ? 0.4 : 0.55) * mul);
           ctx.drawImage(im, c.ox, c.oy, c.w, c.h);
         });
         // pass 2 — additive glow
@@ -78,7 +80,8 @@ export default function LakeOverlay({ active, animate = true, onHover, onQuery, 
           const im = imgs.current[k]; if (!im || !im.width) return;
           const pulse = animate ? 0.5 + 0.5 * Math.sin(t * 0.4 + i * 1.7) : 0.7;
           const base = k === 'inflow' ? 0.3 : 0.5;
-          ctx.globalAlpha = Math.min(1, base * (0.65 + 0.35 * pulse) + hover[k] * 0.4);
+          const mul = 1 + hover[k] * 0.45;
+          ctx.globalAlpha = Math.min(1, base * (0.65 + 0.35 * pulse) * mul);
           ctx.drawImage(im, c.ox, c.oy, c.w, c.h);
         });
         ctx.globalAlpha = 1;
