@@ -75,11 +75,6 @@ export default function Overlay({ visible, counts, answer, onHover, onAsk, sound
         </div>
       </div>
 
-      {/* four zone cards */}
-      {['eng', 'field', 'part', 'fund'].map((k) => (
-        <ZoneCard key={k} k={k} count={counts[k]} onHover={onHover} />
-      ))}
-
       {/* ask the lake */}
       <div className="ov-ask">
         <div className="row">

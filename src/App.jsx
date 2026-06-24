@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import VideoStage from './ui/VideoStage.jsx';
 import LakeOverlay from './ui/LakeOverlay.jsx';
+import SectionLabels from './ui/SectionLabels.jsx';
 import Overlay from './ui/Overlay.jsx';
 import EnterGate from './ui/EnterGate.jsx';
 import App3D from './App3D.jsx';
@@ -23,6 +24,7 @@ export default function App() {
   const [, setHovered] = useState(null);
   const [answer, setAnswer] = useState({ text: '', ok: true });
   const [soundOn, setSoundOn] = useState(false); // audio cut for now
+  const [centroids, setCentroids] = useState(null);
 
   const aerial = phase === 'aerial';
 
@@ -78,7 +80,9 @@ export default function App() {
         onSwoopEnd={() => setPhase('aerial')}
       />
 
-      <LakeOverlay active={aerial} animate={!reduced} onHover={onHover} onQuery={onQuery} />
+      <LakeOverlay active={aerial} animate={!reduced} onHover={onHover} onQuery={onQuery} onReady={setCentroids} />
+
+      <SectionLabels centroids={centroids} counts={counts} visible={aerial} />
 
       <Overlay
         visible={aerial}
