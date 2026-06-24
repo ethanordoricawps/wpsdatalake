@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 // Plain-language explainer for first-time viewers / stakeholders.
 const SECTIONS = [
@@ -35,7 +36,7 @@ export default function About() {
   return (
     <>
       <button className="about-btn" onClick={() => setOpen(true)}>About</button>
-      {open && (
+      {open && createPortal(
         <div className="charter-backdrop" onClick={() => setOpen(false)}>
           <div className="zone-card about-card" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
             <div className="zone-head">
@@ -59,7 +60,8 @@ export default function About() {
             ))}
             <div className="charter-foot">Illustrative — pending discovery</div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );
