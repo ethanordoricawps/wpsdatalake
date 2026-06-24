@@ -23,12 +23,14 @@ export default function AmbientLife({ active, animate = true }) {
     resize();
     window.addEventListener('resize', resize);
 
-    // fog banks: normalized-frame band over the water (y ~0.28..0.62), drifting
-    const fog = Array.from({ length: 6 }, (_, i) => ({
-      x: Math.random(), y: 0.3 + (i / 6) * 0.32 + (Math.random() - 0.5) * 0.05,
-      w: 0.5 + Math.random() * 0.5, h: 0.07 + Math.random() * 0.06,
-      speed: (0.004 + Math.random() * 0.006) * (i % 2 ? 1 : -1),
-      a: 0.05 + Math.random() * 0.05,
+    // fog: many small wisps scattered from the canopies (high) down across the
+    // water (y ~0.08..0.62), drifting in alternating directions
+    const FOG_N = 12;
+    const fog = Array.from({ length: FOG_N }, (_, i) => ({
+      x: Math.random(), y: 0.08 + (i / FOG_N) * 0.54 + (Math.random() - 0.5) * 0.07,
+      w: 0.22 + Math.random() * 0.42, h: 0.05 + Math.random() * 0.07,
+      speed: (0.0275 + Math.random() * 0.035) * (i % 2 ? 1 : -1),
+      a: 0.18 + Math.random() * 0.04,
     }));
 
     // birds fly along a depth axis: from a far vanishing point up near the
